@@ -1,7 +1,7 @@
 package com.locadora.LocAuto.Model;
 
 public class Carro {
-    private int Id_Carro;
+    private Integer Id_Carro;
     private String placa;
     private float Quilometragem;
     private String Cor;

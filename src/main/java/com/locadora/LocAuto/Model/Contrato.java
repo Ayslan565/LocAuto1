@@ -1,6 +1,15 @@
     package com.locadora.LocAuto.Model;
 
     public class Contrato {
+        private Integer ID_Contrato;
+        public Integer getID_Contrato() {
+            return ID_Contrato;
+        }
+
+        public void setID_Contrato(Integer iD_Contrato) {
+            ID_Contrato = iD_Contrato;
+        }
+
         private Funcionario funcionario;
         private Carro carro;
         private Cliente cliente;
@@ -28,12 +37,7 @@
         public void setCliente(Cliente cliente) {
             this.cliente = cliente;
         }
-
-        public Contrato(Funcionario funcionario, Carro carro, Cliente cliente) {
-            this.funcionario = funcionario;
-            this.carro = carro;
-            this.cliente = cliente;
-        }
+//Falta Construtor (PREGUIÇA)
 
         @Override
         public String toString() {

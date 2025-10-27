@@ -3,7 +3,7 @@ package com.locadora.LocAuto.Model;
 import java.util.Date;
 
 public class Pessoa {
-    protected int Id ;
+    protected Integer Id ;
     protected String CPF;
     protected String nome;
     protected Date Data_nascimento;

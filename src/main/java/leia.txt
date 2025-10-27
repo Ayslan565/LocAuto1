@@ -1,0 +1,12 @@
+Service - Regra de Negocio, Ex descontos INSS Sobre o Salario
+
+Controller -> Recebe os valores
+|
+v
+Service -> Regra de Negocio (descontos)
+|
+v
+Repositorio -> Mexe no BD
+|
+v
+Banco De Dados
