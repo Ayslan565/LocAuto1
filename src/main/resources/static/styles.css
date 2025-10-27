@@ -1,0 +1,464 @@
+/* Variáveis de Cores */
+:root {
+    --primary-color: #007bff; /* Azul vibrante */
+    --secondary-color: #6c757d; /* Cinza */
+    --success-color: #28a745; /* Verde */
+    --danger-color: #dc3545; /* Vermelho */
+    --background-color: #f8f9fa; /* Cinza claro */
+    --sidebar-color: #343a40; /* Cinza escuro */
+    --text-light: #ffffff;
+    --text-dark: #212529;
+    --card-bg: #ffffff;
+    --border-color: #dee2e6;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Arial', sans-serif;
+}
+
+body {
+    background-color: var(--background-color);
+    color: var(--text-dark);
+}
+
+/* ------------------- Telas e Navegação (SPA Simulação) ------------------- */
+.screen {
+    display: none;
+    width: 100%;
+    height: 100vh;
+}
+
+.screen.active {
+    display: flex;
+}
+
+/* ------------------- TELA DE LOGIN ------------------- */
+#login-screen {
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, var(--primary-color), #0056b3);
+}
+
+.login-container {
+    background: var(--card-bg);
+    padding: 40px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    width: 350px;
+    text-align: center;
+}
+
+.login-container h1 {
+    color: var(--primary-color);
+    margin-bottom: 5px;
+}
+
+.login-container p {
+    color: var(--secondary-color);
+    margin-bottom: 20px;
+}
+
+.login-info {
+    margin-top: 15px;
+    font-size: 0.9em;
+    color: var(--secondary-color);
+}
+
+/* ------------------- DASHBOARD PRINCIPAL ------------------- */
+#dashboard-screen {
+    display: grid;
+    grid-template-columns: 250px 1fr; /* Sidebar e Conteúdo */
+}
+
+/* SIDEBAR */
+.sidebar {
+    background: var(--sidebar-color);
+    color: var(--text-light);
+    padding: 20px 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.sidebar .logo {
+    font-size: 1.5em;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 30px;
+    color: var(--primary-color);
+}
+
+.sidebar nav {
+    flex-grow: 1;
+}
+
+.sidebar .nav-section-title {
+    color: #6c757d;
+    font-size: 0.8em;
+    padding: 10px 20px 5px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.sidebar .nav-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 20px;
+    text-decoration: none;
+    color: var(--text-light);
+    transition: background 0.3s;
+}
+
+.sidebar .nav-item i {
+    margin-right: 10px;
+    width: 20px;
+}
+
+.sidebar .nav-item:hover,
+.sidebar .nav-item.active {
+    background: var(--primary-color);
+}
+
+.sidebar .user-info {
+    padding: 15px 20px;
+    border-top: 1px solid #495057;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.sidebar .user-info span {
+    margin-left: 5px;
+}
+
+/* CONTEÚDO PRINCIPAL */
+.content {
+    padding: 20px 30px;
+    overflow-y: auto;
+}
+
+.header {
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 10px;
+}
+
+/* VISUALIZAÇÕES (VIEWS) */
+.view {
+    display: none;
+    padding: 20px 0;
+}
+
+.view.active {
+    display: block;
+}
+
+/* ------------------- Componentes e Utilidades ------------------- */
+
+/* BOTÕES (Buttons) */
+.btn {
+    padding: 8px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s, opacity 0.3s;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn i {
+    margin-right: 5px;
+}
+
+.btn.primary {
+    background-color: var(--primary-color);
+    color: var(--text-light);
+}
+
+.btn.primary:hover {
+    background-color: #0056b3;
+}
+
+.btn.secondary {
+    background-color: var(--secondary-color);
+    color: var(--text-light);
+}
+
+.btn.secondary:hover {
+    background-color: #5a6268;
+}
+
+.btn.edit {
+    background-color: #ffc107; /* Amarelo */
+    color: var(--text-dark);
+}
+
+.btn.delete {
+    background-color: var(--danger-color);
+    color: var(--text-light);
+}
+
+.btn.small {
+    padding: 5px 8px;
+    font-size: 0.8em;
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.logout-btn {
+    background: none;
+    color: #ced4da;
+    padding: 0;
+}
+
+.logout-btn:hover {
+    color: var(--danger-color);
+}
+
+/* INPUTS E FORMULÁRIOS */
+.input-group {
+    margin-bottom: 15px;
+    width: 100%; /* Default para formulários em coluna */
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    font-size: 0.9em;
+}
+
+.input-group input,
+.input-group select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 1em;
+}
+
+/* Layout de Formulário CRUD */
+.crud-form {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-row {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 0;
+}
+
+.form-row .input-group {
+    flex: 1;
+}
+
+.input-group.full-width {
+    width: 100%;
+}
+
+.form-section-title {
+    font-weight: bold;
+    color: var(--primary-color);
+    margin: 15px 0 10px 0;
+    padding-bottom: 5px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.form-actions {
+    margin-top: 20px;
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+/* CARDS */
+.card {
+    background: var(--card-bg);
+    padding: 20px;
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    margin-bottom: 20px;
+}
+
+.card h4 {
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+/* KPI Cards (Key Performance Indicators) */
+.kpi-cards {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.card.kpi {
+    flex: 1;
+    text-align: center;
+    padding: 25px;
+}
+
+.card.kpi i {
+    font-size: 2.5em;
+    margin-bottom: 10px;
+    display: block;
+}
+
+.card.kpi p {
+    font-size: 0.9em;
+    color: var(--secondary-color);
+}
+
+.card.kpi span {
+    font-size: 1.8em;
+    font-weight: bold;
+    color: var(--text-dark);
+}
+
+.primary-color { color: var(--primary-color); }
+.secondary-color { color: var(--secondary-color); }
+.success-color { color: var(--success-color); }
+
+/* TABELAS */
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.data-table th, .data-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.data-table th {
+    background-color: var(--background-color);
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 0.85em;
+}
+
+.data-table tbody tr:hover {
+    background-color: #f1f1f1;
+}
+
+.data-table td:last-child {
+    display: flex;
+    gap: 5px;
+}
+
+/* STATUS BADGES */
+.status-badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 0.8em;
+    font-weight: bold;
+}
+
+.status-badge.available {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status-badge.rented {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+/* CRUD HEADER */
+.crud-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.crud-header h3 {
+    color: var(--primary-color);
+}
+
+
+/* ------------------- MODAL/OVERLAY (Para Formulário CRUD) ------------------- */
+.form-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5); /* Fundo semi-transparente */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.form-overlay.hidden {
+    display: none;
+}
+
+.form-modal {
+    background: var(--card-bg);
+    padding: 30px;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 800px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.form-modal h4 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--primary-color);
+}
+
+/* Media Query para Mobile/Visualização Menor */
+@media (max-width: 768px) {
+    #dashboard-screen {
+        grid-template-columns: 1fr; /* Sidebar oculta ou transformada em menu 'hamburguer' */
+    }
+
+    .sidebar {
+        display: none; /* Simplificando para protótipo */
+    }
+
+    .content {
+        padding: 15px;
+    }
+
+    .kpi-cards {
+        flex-direction: column;
+    }
+
+    .form-modal {
+        margin: 20px;
+        padding: 20px;
+    }
+
+    .form-row {
+        flex-direction: column;
+        gap: 0;
+    }
+    
+    .data-table {
+        font-size: 0.8em;
+    }
+
+    .data-table th, .data-table td {
+        padding: 8px;
+    }
+}
