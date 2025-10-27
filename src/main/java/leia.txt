@@ -10,3 +10,11 @@ Repositorio -> Mexe no BD
 |
 v
 Banco De Dados
+
+Observação requisições http
+
+put -> Atualiza tudo
+post  -> Criar dados
+get -> Buscar dados
+patch -> Update com Where (Atualiza parcialmente) um dado especifico
+Delete ->Deleta dados
