@@ -1,7 +1,14 @@
 package com.locadora.LocAuto.Model;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+
+@Entity
+@Table (name = "tb_carro")
 public class Carro {
-    private int Id_Carro;
+    @Id
+    private Integer Id_Carro;
     private String placa;
     private float Quilometragem;
     private String Cor;

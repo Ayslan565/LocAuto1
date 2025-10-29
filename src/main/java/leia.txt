@@ -1,0 +1,20 @@
+Service - Regra de Negocio, Ex descontos INSS Sobre o Salario
+
+Controller -> Recebe os valores
+|
+v
+Service -> Regra de Negocio (descontos)
+|
+v
+Repositorio -> Mexe no BD
+|
+v
+Banco De Dados
+
+Observação requisições http
+
+put -> Atualiza tudo
+post  -> Criar dados
+get -> Buscar dados
+patch -> Update com Where (Atualiza parcialmente) um dado especifico
+Delete ->Deleta dados

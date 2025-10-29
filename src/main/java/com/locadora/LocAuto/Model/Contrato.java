@@ -1,46 +1,45 @@
-    package com.locadora.LocAuto.Model;
+package com.locadora.LocAuto.Model;
 
-    public class Contrato {
-        private Funcionario funcionario;
-        private Carro carro;
-        private Cliente cliente;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.persistence.GeneratedValue;     // <-- NOVO!
+import jakarta.persistence.GenerationType;   // <-- NOVO!
+import jakarta.persistence.ManyToOne;        // <-- NOVO!
+import jakarta.persistence.JoinColumn;       // <-- NOVO!
+// import jakarta.persistence.OneToOne; // Se você preferir OneToOne, use esta.
 
-        public Funcionario getFuncionario() {
-            return funcionario;
-        }
+@Entity
+@Table (name= "tb_contrato")
+public class Contrato {
+    
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY) // 1. Corrigindo o ID
+    private Integer ID_Contrato;
 
-        public void setFuncionario(Funcionario funcionario) {
-            this.funcionario = funcionario;
-        }
+    // 2. CORRIGINDO RELACIONAMENTOS (ManyToOne é o mais provável)
+    
+    @ManyToOne
+    @JoinColumn(name = "funcionario_id") // Cria a FK (chave estrangeira) na tabela tb_contrato
+    private Funcionario funcionario;
+    
+    @ManyToOne
+    @JoinColumn(name = "carro_id") // Cria a FK na tabela tb_contrato
+    private Carro carro;
+    
+    @ManyToOne
+    @JoinColumn(name = "cliente_id") // Cria a FK na tabela tb_contrato
+    private Cliente cliente;
 
-        public Carro getCarro() {
-            return carro;
-        }
-
-        public void setCarro(Carro carro) {
-            this.carro = carro;
-        }
-
-        public Cliente getCliente() {
-            return cliente;
-        }
-
-        public void setCliente(Cliente cliente) {
-            this.cliente = cliente;
-        }
-
-        public Contrato(Funcionario funcionario, Carro carro, Cliente cliente) {
-            this.funcionario = funcionario;
-            this.carro = carro;
-            this.cliente = cliente;
-        }
-
-        @Override
-        public String toString() {
-            return "Contrato{" +
-                    "funcionario=" + funcionario +
-                    ", carro=" + carro +
-                    ", cliente=" + cliente +
-                    '}';
-        }
+    // Métodos Getters e Setters (Mantidos)
+    public Integer getID_Contrato() {
+        return ID_Contrato;
     }
+    // ... (restante dos métodos)
+
+    // Lembre-se de criar o Construtor Vazio (default constructor) se você criou outros construtores!
+    public Contrato() {
+    }
+
+    // ... (restante da classe)
+}
