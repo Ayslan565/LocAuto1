@@ -14,7 +14,7 @@
 
 * {
     box-sizing: border-box;
-    margin: 10;
+    margin: 0; /* Corrigido de '10' para '0' */
     padding: 0;
     font-family: 'Arial', sans-serif;
 }
@@ -96,7 +96,7 @@ body {
 }
 
 .sidebar .nav-section-title {
-    color: #6c757d;
+    color: #adb5bd; /* Cinza mais claro para título de seção */
     font-size: 0.8em;
     padding: 10px 20px 5px;
     text-transform: uppercase;
@@ -227,7 +227,7 @@ body {
 /* INPUTS E FORMULÁRIOS */
 .input-group {
     margin-bottom: 15px;
-    width: 100%; /* Default para formulários em coluna */
+    width: 100%;
 }
 
 .input-group label {
@@ -354,27 +354,8 @@ body {
 }
 
 .data-table td:last-child {
-    display: flex;
-    gap: 5px;
-}
-
-/* STATUS BADGES */
-.status-badge {
-    display: inline-block;
-    padding: 3px 8px;
-    border-radius: 4px;
-    font-size: 0.8em;
-    font-weight: bold;
-}
-
-.status-badge.available {
-    background-color: #d4edda;
-    color: #155724;
-}
-
-.status-badge.rented {
-    background-color: #f8d7da;
-    color: #721c24;
+    /* Ajuste para alinhar os botões de ação */
+    white-space: nowrap; 
 }
 
 /* CRUD HEADER */
@@ -389,6 +370,20 @@ body {
     color: var(--primary-color);
 }
 
+/* Área de Pesquisa */
+.search-area {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+}
+
+.search-area input {
+    flex-grow: 1;
+}
 
 /* ------------------- MODAL/OVERLAY (Para Formulário CRUD) ------------------- */
 .form-overlay {
@@ -429,11 +424,11 @@ body {
 /* Media Query para Mobile/Visualização Menor */
 @media (max-width: 768px) {
     #dashboard-screen {
-        grid-template-columns: 1fr; /* Sidebar oculta ou transformada em menu 'hamburguer' */
+        grid-template-columns: 1fr; 
     }
 
     .sidebar {
-        display: none; /* Simplificando para protótipo */
+        display: none; 
     }
 
     .content {
@@ -445,7 +440,7 @@ body {
     }
 
     .form-modal {
-        margin: 20px;
+        margin: 10px;
         padding: 20px;
     }
 
