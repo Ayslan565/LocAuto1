@@ -1,4 +1,4 @@
-package com.locadora.repositorio;
+package com.locadora.LocAuto.repositorio;
 
 public interface repositorioCarro {
     

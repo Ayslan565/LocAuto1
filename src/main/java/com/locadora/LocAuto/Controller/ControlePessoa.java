@@ -6,6 +6,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.locadora.LocAuto.Model.Pessoa;
 import com.locadora.LocAuto.services.PessoasServices;
+
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -18,9 +20,12 @@ public class ControlePessoa {
 
     @PostMapping("/add")
     public String adicionarInfPessoa(@RequestBody Pessoa pessoa) {
-        //TODO: process POST request
         pessoasServices.adicionarInfPessoa(pessoa);
-        return "Sucesso pai!";
+        return "Sucesso  pai!";
+    }
+     @GetMapping("/listar")
+    public Iterable<Pessoa> listarPessoas() {
+        return pessoasServices.listarPessoas();
     }
     
 }

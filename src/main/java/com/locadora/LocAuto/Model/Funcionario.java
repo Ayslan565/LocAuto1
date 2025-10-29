@@ -1,17 +1,19 @@
 package com.locadora.LocAuto.Model;
 import java.util.Date;
 
+import jakarta.persistence.Entity;
+    import jakarta.persistence.Table;
+@Entity
+@Table (name = "tb_funcionario")
 public class Funcionario extends Pessoa {
+    
     private  int id_funcionario;
     private Date Data_Admissao;
     private String Cargo;
     float Salario;
 
 
-    public Funcionario(int id, String CPF, String nome, Date data_nascimento, String endereco, String email) {
-        super(id, CPF, nome, data_nascimento, endereco, email);
 
-    }
 
     public int getId_funcionario() {
         return id_funcionario;
@@ -45,8 +47,8 @@ public class Funcionario extends Pessoa {
         Salario = salario;
     }
 
-    public Funcionario(int id, String CPF, String nome, Date data_nascimento, String endereco, String email, int id_funcionario, Date data_Admissao, String cargo, float salario) {
-        super(id, CPF, nome, data_nascimento, endereco, email);
+    public Funcionario(Integer id, String CPF, String nome, Date data_nasc, String cep, String municipio, String uf, String complemento, String Email, String telefone1, String telefone2, String endereco, int id_funcionario, Date data_Admissao, String cargo, float salario) {
+        super(id, CPF, nome, data_nasc, cep, municipio, uf, complemento, Email, telefone1, telefone2, endereco);
         this.id_funcionario = id_funcionario;
         Data_Admissao = data_Admissao;
         Cargo = cargo;
