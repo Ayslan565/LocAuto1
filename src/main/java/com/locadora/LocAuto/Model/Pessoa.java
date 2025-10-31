@@ -11,6 +11,7 @@ import jakarta.persistence.Inheritance;
 import jakarta.persistence.Table;
 import jakarta.persistence.InheritanceType;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Entity
 @Table (name = "tb_pessoa")
@@ -25,6 +26,7 @@ public class Pessoa {
     // --- Campos do banco de dados (tb_pessoa) ---
 
     @Column(length = 14) 
+    @JsonProperty("CPF")
     protected String cpf;
 
     @Column(length = 100)
@@ -48,7 +50,7 @@ public class Pessoa {
     @Column(length = 100)
     protected String Email;
 
-    @Column(name = "telefone1", length = 15) // Ex: (99) 99999-9999
+    @Column(name = "telefone1", length = 15) 
     protected String telefone1;
 
     @Column(name = "telefone2", length = 15)
@@ -61,7 +63,6 @@ public class Pessoa {
 
     public Pessoa() {
     }
-
     public Pessoa(Integer id, String cpf, String nome, Date data_nasc, String cep, String municipio, String uf,
                   String complemento, String Email, String telefone1, String telefone2, String endereco) {
         this.Id = id;
