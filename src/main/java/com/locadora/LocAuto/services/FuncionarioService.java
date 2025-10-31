@@ -7,8 +7,7 @@ import com.locadora.LocAuto.Model.Funcionario;
 @Service
 public class FuncionarioService {
 
-    public static void adicionarInfFuncionario(Funcionario funcionario) {
-        // TODO Auto-generated method stub
+    public void adicionarInfFuncionario(Funcionario funcionario) {
         throw new UnsupportedOperationException("Unimplemented method 'adicionarInfFuncionario'");
     }
     

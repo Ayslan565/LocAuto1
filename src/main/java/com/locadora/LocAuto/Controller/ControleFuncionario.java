@@ -19,7 +19,7 @@ public class ControleFuncionario {
 
     @PostMapping("/add")
     public String adicionarInfFuncionario(@RequestBody Funcionario funcionario) {
-    FuncionarioService.adicionarInfFuncionario(funcionario);
+    funcionarioService.adicionarInfFuncionario(funcionario);
     return "Sucesso Funcionario";
     }
     

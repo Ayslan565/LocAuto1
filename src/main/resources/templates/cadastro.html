@@ -213,7 +213,6 @@
 
                 if (tipo === 'CLIENTE') {
                     clienteDiv.classList.remove('hidden');
-                    // NENHUM campo de cliente é marcado como 'required' no backend, mas pode ser adicionado aqui.
                     
                 } else if (tipo === 'FUNCIONARIO' || tipo === 'GERENTE') {
                     funcionarioDiv.classList.remove('hidden');
@@ -236,6 +235,18 @@
             const tipo = tipoSelectHidden.value;
             const senha = document.getElementById('senha').value;
             const confirmacaoSenha = document.getElementById('confirmacaoSenha').value;
+            const email = document.getElementById('email').value; // Coletado para log
+
+            // VERIFICAÇÃO DE TIPO
+            if (!tipo) {
+                alert('ERRO: Por favor, selecione o Tipo de Pessoa a cadastrar (Cliente/Funcionário/Gerente).');
+                return;
+            }
+            // ADICIONADO: Restrição para forçar o teste do Cliente no endpoint dedicado
+            if (tipo !== 'CLIENTE') {
+                 alert('ERRO: Este teste está configurado apenas para o tipo CLIENTE no endpoint /detalhesCliente/add.');
+                 return;
+            }
 
             // --- VALIDAÇÃO DE SENHA (FRONTEND) ---
             if (senha !== confirmacaoSenha) {
@@ -247,17 +258,14 @@
             }
             // -------------------------------------
             
-            // 1. Coleta os dados comuns (Pessoa/Login)
+            // 1. Coleta os dados (As chaves devem ser as mesmas dos campos Java)
             const dados = {
-                tipo: tipo, // Usado pelo Backend para rotear
+                // REMOVIDOS: tipo, email, senha para fins de separação de credenciais
                 
                 // Campos Comuns (Pessoa)
                 nome: document.getElementById('nome').value,
                 cpf: document.getElementById('cpf').value,
-                email: document.getElementById('email').value,
-                senha: senha,
-                confirmacaoSenha: confirmacaoSenha, 
-                data_nasc: document.getElementById('data_nasc').value, // Use ISO format (AAAA-MM-DD)
+                data_nasc: document.getElementById('data_nasc').value,
                 telefone1: document.getElementById('telefone1').value,
                 cep: document.getElementById('cep').value,
                 endereco: document.getElementById('endereco').value,
@@ -276,17 +284,39 @@
                 dados.salario = parseFloat(document.getElementById('salario').value); 
             }
 
-            console.log('Dados prontos para o Spring Boot:', dados);
-
-            // 3. Lógica de Envio (FETCH/AXIOS) deve ser adicionada aqui.
-            // O seu Backend precisa expor o endpoint POST: /api/pessoas/cadastrar
+            // Log para os campos removidos
+            console.log(`Dados prontos para o Spring Boot (Cliente). Email ( ${email} ) e Senha ( ${senha} ) foram removidos do JSON:`, dados);
             
-            // Exemplo de Simulação:
-            alert(`[SIMULAÇÃO] Sucesso! ${tipo} cadastrado.`);
-            form.reset(); 
-            tipoBotoes.forEach(btn => btn.classList.remove('selected'));
-            tipoSelectHidden.value = '';
-            ajustarCampos(''); 
+            // 3. Lógica de Envio (FETCH para o Spring Boot)
+            const endpoint = '/detalhesCliente/add'; // Endpoint do ControleCliente
+            
+            fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(dados) // Envia o objeto JSON
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.text(); 
+                }
+                return response.text().then(errorMessage => { 
+                     throw new Error(`Erro no servidor: Status ${response.status}. Mensagem: ${errorMessage}`);
+                });
+            })
+            .then(data => {
+                alert(`[SUCESSO] Cliente cadastrado com sucesso! Resposta: ${data}`);
+                
+                form.reset(); 
+                tipoBotoes.forEach(btn => btn.classList.remove('selected'));
+                tipoSelectHidden.value = '';
+                ajustarCampos(''); 
+            })
+            .catch(error => {
+                console.error('Falha na requisição:', error);
+                alert('ERRO: Falha ao cadastrar. Verifique o console. ' + error.message);
+            });
         });
 
         // Executa a função na carga inicial

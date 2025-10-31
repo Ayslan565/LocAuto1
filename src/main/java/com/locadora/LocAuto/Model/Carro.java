@@ -1,6 +1,8 @@
 package com.locadora.LocAuto.Model;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
@@ -8,6 +10,7 @@ import jakarta.persistence.Table;
 @Table (name = "tb_carro")
 public class Carro {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer Id_Carro;
     private String placa;
     private float Quilometragem;
@@ -16,6 +19,11 @@ public class Carro {
     private int AnoFabricacao;
     private String Nome;
 
+
+
+    public Carro() {    
+    }
+    
     public int getId_Carro() {
         return Id_Carro;
     }

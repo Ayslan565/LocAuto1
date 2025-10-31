@@ -31,15 +31,30 @@ document.addEventListener('DOMContentLoaded', () => {
     // Inicializa a visibilidade dos formulários como ocultos na carga
     document.querySelectorAll('.form-overlay').forEach(el => el.classList.add('hidden'));
 
-    // ------------------- SIMULAÇÃO DE LOGIN -------------------
+    // ------------------- SIMULAÇÃO DE LOGIN (Com Validação de Senha) -------------------
     const loginForm = document.getElementById('login-form');
     loginForm.addEventListener('submit', (e) => {
         e.preventDefault();
         
-        // Simulação de sucesso no login:
-        document.getElementById('login-screen').classList.remove('active');
-        document.getElementById('dashboard-screen').classList.add('active');
-        changeView('home-view'); // Garante que a primeira view carrega corretamente
+        // Credenciais de simulação (admin/123)
+        const VALID_USER = "admin";
+        const VALID_PASS = "123";
+
+        // Obtém os valores dos inputs
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+
+        // Validação
+        if (username === VALID_USER && password === VALID_PASS) {
+            // Sucesso no login:
+            document.getElementById('login-screen').classList.remove('active');
+            document.getElementById('dashboard-screen').classList.add('active');
+            changeView('home-view'); // Garante que a primeira view carrega corretamente
+        } else {
+             // Falha no login
+             alert("Falha no Login: Usuário ou Senha inválidos.");
+             document.getElementById('password').value = ''; // Limpa o campo de senha
+        }
     });
 
     // ------------------- NAVEGAÇÃO SPA -------------------
@@ -67,7 +82,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (entityKey in mockData) {
             // Se for uma das views dinâmicas (pessoas, clientes, funcionarios, carros)
             const entityName = entityKey.charAt(0).toUpperCase() + entityKey.slice(1).replace('s', ''); // Ex: 'clientes' -> 'Cliente'
-            renderDataView(targetId, mockData[entityKey], entityName);
+            
+            // Aqui é onde você faria o fetch('/api/' + entityKey) para carregar dados reais
+            
+            renderDataView(targetId, mockData[entityKey], entityName); // Usando mockData por enquanto
         } else if (targetId === 'contratos-view') {
             // Conteúdo de contratos é semi-estático, mas vamos atualizar a tabela
             const table = document.querySelector('#contratos-view .data-table tbody');
@@ -198,7 +216,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // CHAMADA REAL: fetch('/api/' + entityKey + '?search=' + input).then(...)
     }
 
-    // ------------------- SIMULAÇÃO DE CRUD (MODAIS) --- (Seu código original)
+    // ------------------- SIMULAÇÃO DE CRUD (MODAIS) --- 
 
     window.showForm = (viewId, mode, entityId = null) => {
         // Mapeia views de Clientes/Funcionários para o modal de Pessoa
@@ -219,7 +237,7 @@ document.addEventListener('DOMContentLoaded', () => {
             formTitleSpan.textContent = 'Cadastrar';
         } else if (mode === 'edit') {
             formTitleSpan.textContent = 'Editar';
-            // Simulação de carregamento
+            // Simulação de carregamento (Chamada GET: fetch('/api/' + entityKey + '/' + entityId))
             console.log(`Simulando carregamento de dados para edição de ID: ${entityId}`);
         }
 
@@ -239,10 +257,13 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
             const formContainerId = form.parentNode.parentNode.id; // Pega o id do form-overlay
             const viewId = formContainerId.replace('-form-container', '-view');
+            const entityKey = viewId.replace('-view', ''); // Ex: 'pessoas'
             const action = form.querySelector('h4').textContent.includes('Cadastrar') ? 'Criação' : 'Edição';
             
             // Aqui seria a chamada POST/PUT para o Spring Boot
-            alert(`Simulação de ${action} de ${viewId.toUpperCase()}:\nDados enviados com sucesso! (ID: 999)`);
+            // Exemplo: fetch('/api/' + entityKey, { method: action === 'Criação' ? 'POST' : 'PUT', ... })
+
+            alert(`Simulação de ${action} de ${entityKey.toUpperCase()}:\nDados enviados com sucesso! (ID: 999)`);
             
             hideForm(viewId);
             changeView(viewId); // Atualiza a lista após a submissão simulada
@@ -252,8 +273,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Simulação de DELETE
     window.confirmDelete = (entityId, entityName) => {
         if (confirm(`Tem certeza que deseja remover o(a) ${entityName} ID ${entityId}? (Simulação de DELETE)`)) {
+            // Lógica real de deleção (DELETE) aqui: fetch('/api/' + entityName.toLowerCase() + 's/' + entityId, { method: 'DELETE' })
             alert(`Simulação de remoção: ${entityName} ID ${entityId} removido.`);
-            // Lógica real de deleção (DELETE) aqui
+            // Opcional: Recarregar a lista: changeView(entityName.toLowerCase() + 's-view');
         }
     };
 

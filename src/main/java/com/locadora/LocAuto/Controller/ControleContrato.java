@@ -17,7 +17,7 @@ public class ControleContrato {
 
     @PostMapping("/add")
     public String adicionarInfContrato(@RequestBody Contrato contrato) {
-    ContratoService.adicionarInfContrato(contrato);
+    contratoService.adicionarInfContrato(contrato);
     return "Sucesso Contrato";
 }
 }

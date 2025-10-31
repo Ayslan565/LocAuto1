@@ -19,7 +19,7 @@ public class ControleCliente {
 
     @PostMapping("/add")
     public String adicionarInfCliente(@RequestBody Cliente cliente) {
-    ClienteService.adicionarInfCliente(cliente);
+    clienteService.adicionarInfCliente(cliente);
     return "Sucesso Cliente";
 }
 }

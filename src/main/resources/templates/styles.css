@@ -67,6 +67,22 @@ body {
     color: var(--secondary-color);
 }
 
+/* NOVO ESTILO PARA O LINK DE REGISTRO */
+.registration-link {
+    margin-top: 15px;
+    font-size: 0.9em;
+}
+
+.registration-link a {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.registration-link a:hover {
+    text-decoration: underline;
+}
+
 /* ------------------- DASHBOARD PRINCIPAL ------------------- */
 #dashboard-screen {
     display: grid;

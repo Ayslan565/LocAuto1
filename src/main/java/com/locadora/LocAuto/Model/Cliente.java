@@ -5,10 +5,16 @@ import java.util.Date;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 @Entity
+
 @Table (name = "tb_cliente")
 public class Cliente extends Pessoa{
 
     private Integer id_cliente;
+
+
+    public Cliente(Integer id_cliente) {
+        this.id_cliente = id_cliente;
+    }
 
 
     public Integer getId_cliente() {
@@ -23,4 +29,5 @@ public class Cliente extends Pessoa{
         super(id, CPF, nome, data_nasc, cep, municipio, uf, complemento, Email, telefone1, telefone2, endereco);
         this.id_cliente = id_cliente;
     }
+
 }
