@@ -10,10 +10,11 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Inheritance;
 import jakarta.persistence.Table;
 import jakarta.persistence.InheritanceType;
-
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 @Entity
 @Table (name = "tb_pessoa")
+
 @Inheritance(strategy = InheritanceType.JOINED)
 public class Pessoa {
 
@@ -23,13 +24,13 @@ public class Pessoa {
 
     // --- Campos do banco de dados (tb_pessoa) ---
 
-    // CORREÇÃO: Usando @Column para definir o tamanho máximo e resolver o erro de truncamento.
     @Column(length = 14) 
-    protected String CPF;
+    protected String cpf;
 
     @Column(length = 100)
     protected String nome;
 
+    @JsonFormat(pattern = "yyyy-MM-dd")
     protected Date data_nasc;
 
     @Column(length = 10) // CEP tem 8 dígitos + hífen
@@ -61,10 +62,10 @@ public class Pessoa {
     public Pessoa() {
     }
 
-    public Pessoa(Integer id, String CPF, String nome, Date data_nasc, String cep, String municipio, String uf,
+    public Pessoa(Integer id, String cpf, String nome, Date data_nasc, String cep, String municipio, String uf,
                   String complemento, String Email, String telefone1, String telefone2, String endereco) {
         this.Id = id;
-        this.CPF = CPF;
+        this.cpf = cpf;
         this.nome = nome;
         this.data_nasc = data_nasc;
         this.cep = cep;
@@ -80,18 +81,18 @@ public class Pessoa {
     // --- Getters e Setters
     public Integer getId() {
         return Id;
-    }
+    }   
 
     public void setId(Integer id) {
         Id = id;
     }
 
-    public String getCPF() {
-        return CPF;
+    public String getcpf() {
+        return cpf;
     }
 
-    public void setCPF(String CPF) {
-        this.CPF = CPF;
+    public void setcpf(String cpf) {
+        this.cpf = cpf;
     }
 
     public String getNome() {
@@ -178,7 +179,7 @@ public class Pessoa {
     public String toString() {
         return "Pessoa{" +
                 "Id=" + Id +
-                ", CPF='" + CPF + '\'' +
+                ", cpf='" + cpf + '\'' +
                 ", nome='" + nome + '\'' +
                 ", data_nasc=" + data_nasc +
                 ", cep='" + cep + '\'' +

@@ -13,7 +13,9 @@ import com.locadora.LocAuto.services.ClienteService;
 
 @RestController
 @RequestMapping("/detalhesCliente")
+
 public class ControleCliente {
+
         @Autowired
     public ClienteService clienteService;
 

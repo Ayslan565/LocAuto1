@@ -1,33 +1,51 @@
 package com.locadora.LocAuto.Model;
 
-import java.util.Date;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+
+
 @Entity
-
 @Table (name = "tb_cliente")
-public class Cliente extends Pessoa{
-
-    private Integer id_cliente;
-
-
-    public Cliente(Integer id_cliente) {
-        this.id_cliente = id_cliente;
-    }
-
-
-    public Integer getId_cliente() {
-        return id_cliente;
-    }
+public class Cliente { 
+    
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id_cliente; 
+    
+    @OneToOne(cascade = {CascadeType.MERGE, CascadeType.PERSIST})  
+  @JoinColumn(name = "fk_id_pessoa", referencedColumnName = "Id", nullable = false) 
+    private Pessoa pessoa;
 
     public void setId_cliente(Integer id_cliente) {
         this.id_cliente = id_cliente;
     }
 
-    public Cliente(Integer id, String CPF, String nome, Date data_nasc, String cep, String municipio, String uf, String complemento, String Email, String telefone1, String telefone2, String endereco, Integer id_cliente) {
-        super(id, CPF, nome, data_nasc, cep, municipio, uf, complemento, Email, telefone1, telefone2, endereco);
-        this.id_cliente = id_cliente;
+    public Cliente() {
+    }
+    
+    public Cliente(Pessoa pessoa) {
+        this.pessoa = pessoa;
+    }
+
+
+    
+    public Integer getId_cliente() {
+        return id_cliente;
+    }
+
+    public Pessoa getPessoa() {
+        return pessoa;
+    }
+
+    public void setPessoa(Pessoa pessoa) {
+        this.pessoa = pessoa; 
     }
 
 }
