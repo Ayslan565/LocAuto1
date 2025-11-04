@@ -54,4 +54,8 @@ public class Funcionario extends Pessoa {
         Cargo = cargo;
         Salario = salario;
     }
+
+    public Funcionario(){
+        
+    }
 };

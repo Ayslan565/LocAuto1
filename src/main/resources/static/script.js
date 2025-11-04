@@ -41,31 +41,61 @@ document.addEventListener('DOMContentLoaded', () => {
     // Inicializa a visibilidade dos formulários como ocultos na carga
     document.querySelectorAll('.form-overlay').forEach(el => el.classList.add('hidden'));
 
-    // ------------------- SIMULAÇÃO DE LOGIN (Com Validação de Senha) -------------------
+    // ------------------- LÓGICA DE LOGIN COM API (Atualizado) -------------------
     const loginForm = document.getElementById('login-form');
-    loginForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        
-        // Credenciais de simulação (admin/123)
-        const VALID_USER = "admin";
-        const VALID_PASS = "123";
+    const usernameInput = document.getElementById('username');
+    const passwordInput = document.getElementById('password');
 
-        // Obtém os valores dos inputs
-        const username = document.getElementById('username').value;
-        const password = document.getElementById('password').value;
+    if (loginForm) {
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const username = usernameInput.value;
+            const password = passwordInput.value;
 
-        // Validação
-        if (username === VALID_USER && password === VALID_PASS) {
-            // Sucesso no login:
-            document.getElementById('login-screen').classList.remove('active');
-            document.getElementById('dashboard-screen').classList.add('active');
-            changeView('home-view'); // Garante que a primeira view carrega corretamente
-        } else {
-             // Falha no login
-             alert("Falha no Login: Usuário ou Senha inválidos.");
-             document.getElementById('password').value = ''; // Limpa o campo de senha
-        }
-    });
+            // ENDPOINT PADRÃO DO SPRING SECURITY PARA LOGIN VIA FORM
+            const loginEndpoint = '/login'; 
+            
+            // Note: O Spring Security padrão espera form-urlencoded para o endpoint /login
+            fetch(loginEndpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded' 
+                },
+                // Envia os dados no formato URL-encoded (o nome deve ser 'username' e 'password')
+                body: new URLSearchParams({
+                    'username': username,
+                    'password': password
+                })
+            })
+            .then(response => {
+                // SUCESSO: response.ok (200-299) indica sucesso.
+                // FALHA: Qualquer outro status (401, 403) indica falha de autenticação.
+                
+                if (response.ok) {
+                    // SUCESSO! Mostra o pop-up e redireciona (troca de tela)
+                    alert('✅ SUCESSO: Login realizado! Bem-vindo(a) ao painel.');
+                    
+                    document.getElementById('login-screen').classList.remove('active');
+                    document.getElementById('dashboard-screen').classList.add('active');
+                    window.changeView('home-view'); 
+
+                } else {
+                    // FALHA! 
+                    alert('❌ ERRO: Falha na autenticação. Usuário ou Senha inválidos.');
+
+                    // Limpa a senha
+                    passwordInput.value = '';
+                }
+            })
+            .catch(error => {
+                // Erro de rede ou servidor
+                console.error('Falha na requisição de login:', error);
+                alert('❌ ERRO: Não foi possível conectar ao servidor. Verifique o console.');
+                passwordInput.value = '';
+            });
+        });
+    }
 
     // ------------------- NAVEGAÇÃO SPA -------------------
     const navItems = document.querySelectorAll('.nav-item');
@@ -129,10 +159,10 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="search-area">
                 <input type="text" id="${viewId}-search-input" placeholder="Pesquisar ${entityName} por nome/CPF/placa...">
                 <button class="btn secondary" onclick="searchData('${viewId}', '${entityName}', '${entityKey}')">
-                    <i class="fas fa-search"></i> Pesquisar
+                    <i class="fas fas-search"></i> Pesquisar
                 </button>
                 <button class="btn secondary" onclick="changeView('${viewId}')">
-                    <i class="fas fa-sync-alt"></i> Atualizar Lista
+                    <i class="fas fas-sync-alt"></i> Atualizar Lista
                 </button>
             </div>
 
@@ -331,8 +361,11 @@ document.addEventListener('DOMContentLoaded', () => {
     //  ------------------- LOGOUT -------------------
     window.logout = () => {
         if (confirm("Deseja realmente sair do sistema?")) {
+            // Em uma API REST real, aqui você faria um POST para /logout
+            // Ex: fetch('/logout', { method: 'POST' }).then(() => { ... });
             document.getElementById('dashboard-screen').classList.remove('active');
             document.getElementById('login-screen').classList.add('active');
+            passwordInput.value = ''; // Limpa a senha na tela de login
         }
     };
 });

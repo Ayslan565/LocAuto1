@@ -1,7 +1,7 @@
 package com.locadora.LocAuto.services;
 
 import com.locadora.LocAuto.Model.Pessoa;
-import com.locadora.LocAuto.repositorio.repositorioPessoa;
+import com.locadora.LocAuto.repositorio.repositorioPessoa; // Assumindo a interface RepositorioPessoa (PascalCase)
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -10,12 +10,15 @@ import org.springframework.stereotype.Service;
 public class PessoasServices {
     
     @Autowired
-    private repositorioPessoa repositorioPessoa;
+    private repositorioPessoa repositorioPessoa; 
     
-    public void adicionarInfPessoa(Pessoa pessoa){
-        repositorioPessoa.save(pessoa);
+
+    public Pessoa adicionarInfPessoa(Pessoa pessoa){
+        return repositorioPessoa.save(pessoa);
     }
+    
     public Iterable<Pessoa> listarPessoas() {
         return repositorioPessoa.findAll();
     }
-} 
+    
+}

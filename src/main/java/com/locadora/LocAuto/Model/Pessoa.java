@@ -48,7 +48,7 @@ public class Pessoa {
     protected String complemento;
 
     @Column(length = 100)
-    protected String Email;
+    protected String email;
 
     @Column(name = "telefone1", length = 15) 
     protected String telefone1;
@@ -64,7 +64,7 @@ public class Pessoa {
     public Pessoa() {
     }
     public Pessoa(Integer id, String cpf, String nome, Date data_nasc, String cep, String municipio, String uf,
-                  String complemento, String Email, String telefone1, String telefone2, String endereco) {
+                  String complemento, String email, String telefone1, String telefone2, String endereco) {
         this.Id = id;
         this.cpf = cpf;
         this.nome = nome;
@@ -73,7 +73,7 @@ public class Pessoa {
         this.municipio = municipio;
         this.uf = uf;
         this.complemento = complemento;
-        this.Email = Email;
+        this.email = email;
         this.telefone1 = telefone1;
         this.telefone2 = telefone2;
         this.endereco = endereco;
@@ -145,11 +145,11 @@ public class Pessoa {
     }
 
     public String getEmail() {
-        return Email;
+        return email;
     }
 
     public void setEmail(String email) {
-        Email = email;
+        email = email;
     }
 
     public String getTelefone1() {
@@ -187,7 +187,7 @@ public class Pessoa {
                 ", municipio='" + municipio + '\'' +
                 ", uf='" + uf + '\'' +
                 ", complemento='" + complemento + '\'' +
-                ", Email='" + Email + '\'' +
+                ", email='" + email + '\'' +
                 ", telefone1='" + telefone1 + '\'' +
                 ", telefone2='" + telefone2 + '\'' +
                 ", endereco='" + endereco + '\'' +

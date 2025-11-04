@@ -5,29 +5,45 @@ import org.springframework.stereotype.Service;
 
 import com.locadora.LocAuto.Model.Cliente;
 import com.locadora.LocAuto.Model.Pessoa;
-import com.locadora.LocAuto.repositorio.repositorioCliente;
-import com.locadora.LocAuto.repositorio.repositorioPessoa;
+import com.locadora.LocAuto.dto.ClienteCadastroDTO; 
+import com.locadora.LocAuto.repositorio.repositorioCliente; 
+import com.locadora.LocAuto.services.PessoasServices;
+import com.locadora.LocAuto.services.UsuarioService;
 
 @Service
 public class ClienteService {
 
-    // 1. INJEÇÃO DE DEPENDÊNCIA: Necessário para usar o repositório
     @Autowired
-    private repositorioCliente repositorioCliente; 
+    private repositorioCliente repositorioCliente;
+    
     @Autowired
-    private repositorioPessoa repositorioPessoa;
+    private PessoasServices pessoasServices;
+    
+    @Autowired
+    private UsuarioService usuarioService;
 
-    public void adicionarInfCliente(Cliente cliente) {
-        Pessoa pessoa = cliente.getPessoa();
-        if (pessoa == null) {
-            throw new IllegalArgumentException("Dados de Pessoa (relacionamento) ausentes.");
-        }
-        Pessoa pessoaSalva = repositorioPessoa.save(pessoa);
-        cliente.setPessoa(pessoaSalva);
-        // 2. Lógica de Persistência
-        repositorioCliente.save(cliente);
+    public Cliente adicionarInfCliente(ClienteCadastroDTO dto) {
         
-        // REMOVIDO: O throw new UnsupportedOperationException (era um stub de erro)
+        Pessoa pessoa = dto.getPessoa();
+        Pessoa pessoaSalva = pessoasServices.adicionarInfPessoa(pessoa); 
+        
+        Cliente cliente = new Cliente();
+        
+        cliente.setId(pessoaSalva.getId()); 
+
+        Cliente clienteSalvo = repositorioCliente.save(cliente);
+
+        usuarioService.criarNovoUsuario(
+            dto.getLogin(), 
+            dto.getSenhaPura(), 
+            pessoaSalva, 
+            "CLIENTE"
+        );
+        
+        return clienteSalvo;
     }
 
+    public Iterable<Cliente> listarClientes() {
+        return repositorioCliente.findAll();
+    }
 }

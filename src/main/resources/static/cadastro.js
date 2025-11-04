@@ -84,11 +84,9 @@ document.addEventListener('DOMContentLoaded', () => {
             alert('ERRO: Por favor, selecione o Tipo de Pessoa a cadastrar.');
             return;
         }
-        if (tipo !== 'CLIENTE') {
-             alert('ERRO: Este teste está configurado apenas para o tipo CLIENTE no endpoint /detalhescliente/add.');
-             return;
-        }
-
+        
+        // **RESTRIÇÃO DE TIPO DE CADASTRO REMOVIDA PARA TESTES**
+        
         // --- VALIDAÇÃO DE SENHA ---
         if (senha !== confirmacaoSenha) {
             if (passwordErrorElement) passwordErrorElement.classList.remove('hidden');
@@ -101,6 +99,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // 1. FUNÇÃO AUXILIAR PARA PEGAR VALOR DO DOM
         const getVal = (id) => document.getElementById(id) ? document.getElementById(id).value : '';
 
+        // Definindo o login (usando o email como login)
+        const login = email; 
 
         // 2. CONSTRUÇÃO DA PESSOA ANINHADA (Keys em PascalCase/Maiúsculo para o Java)
         const dadosPessoa = {
@@ -117,17 +117,41 @@ document.addEventListener('DOMContentLoaded', () => {
             "uf": getVal('uf'),
             // Note: telefone2 não existe no HTML, mas seria adicionado aqui se existisse
         };
-
-        // 3. CONSTRUÇÃO DO OBJETO CLIENTE RAIZ
-        const dadosFinais = {
-            "idCliente": null,
-            "pessoa": dadosPessoa, // Objeto aninhado para o OneToOne
-        };
-
-        // 4. ENDPOINT: Usamos o caminho relativo, assumindo que o Spring está servindo a API e o HTML.
-        const endpoint = '/detalhescliente/add'; 
-
-        console.log(`Enviando para: ${endpoint}`, dadosFinais);
+        
+        // 3. COLETA DE DADOS ESPECÍFICOS E CONSTRUÇÃO DO OBJETO RAIZ
+        let dadosFinais = {};
+        let endpoint = '';
+        
+        if (tipo === 'CLIENTE') {
+            dadosFinais = {
+                "idCliente": null,
+                "pessoa": dadosPessoa,
+                "login": login,
+                "senhaPura": senha,
+            };
+            endpoint = '/detalhescliente/add'; // Endpoint Cliente
+            
+        } else if (tipo === 'FUNCIONARIO' || tipo === 'GERENTE') {
+             // DTO para Funcionario (Assumindo que você terá um DTO FuncionarioCadastroDTO no Java)
+             dadosFinais = {
+                 "id_funcionario": null,
+                 "data_admissao": getVal('dataAdmissao'),
+                 "cargo": getVal('cargo'),
+                 "salario": getVal('salario'),
+                 "pessoa": dadosPessoa,
+                 "login": login,
+                 "senhaPura": senha,
+                 "tipoCadastro": tipo // Indica se é FUNCIONARIO ou GERENTE
+             };
+             // Você precisará de um Controller/Endpoint separado para Funcionario
+             endpoint = '/detalhesfuncionario/add'; 
+             
+        } else {
+             alert('ERRO INTERNO: Tipo de cadastro não mapeado.');
+             return;
+        }
+        
+        console.log(`Enviando para: ${endpoint} (Tipo: ${tipo})`, dadosFinais);
 
         // --- ENVIO (FETCH) ---
         fetch(endpoint, {
@@ -139,6 +163,7 @@ document.addEventListener('DOMContentLoaded', () => {
         })
         .then(response => {
             if (response.ok) {
+                // Sucesso no servidor (200, 201)
                 return response.text();
             }
             return response.text().then(errorMessage => {
@@ -147,20 +172,24 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         })
         .then(data => {
-            alert(`[SUCESSO] Cadastro de Cliente finalizado! Resposta: ${data}`);
+            // **REMOVIDO O POP-UP DE SUCESSO**
+            // alert(`✅ [SUCESSO] Cadastro de ${tipo} finalizado!`);
 
             // Limpa o formulário e reseta o estado
             form.reset();
             tipoBotoes.forEach(btn => btn.classList.remove('selected'));
             if (tipoSelectHidden) tipoSelectHidden.value = '';
             ajustarCampos('');
+            
+            // Opcional: Redirecionar para o login
+            window.location.href = 'index.html'; 
         })
         .catch(error => {
             console.error('Falha na requisição:', error);
-            alert('ERRO: Falha ao cadastrar. Verifique o console. ' + error.message);
+            alert('❌ ERRO: Falha ao cadastrar. Verifique o console. ' + error.message);
         });
     });
 
     // Garante que o ajuste inicial é feito após tudo carregar
     window.onload = () => ajustarCampos('');
-}); 
+});
