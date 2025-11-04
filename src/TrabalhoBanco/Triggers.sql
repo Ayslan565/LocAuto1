@@ -1,4 +1,4 @@
-
+-- 2 º na hr de criar bd
 DELIMITER $$
 CREATE TRIGGER trg_pessoa_auto_id
 BEFORE INSERT ON tb_pessoa

@@ -1,4 +1,5 @@
 /*VIWES*/
+-- 4º na hr de criar bd 
 
 /* VIEW CLIENTE */
 CREATE VIEW VW_Cliente AS

@@ -1,5 +1,5 @@
 /* FUNCTIONS E PROCEDURES */
-
+-- 6 na hr de criar bd
 /* Verificar disponibilidade do carro*/
 DELIMITER $$
 CREATE FUNCTION fn_VerificarDisponibilidadeCarro(p_id_carro INT)

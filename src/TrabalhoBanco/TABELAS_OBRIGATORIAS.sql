@@ -1,5 +1,9 @@
-/*USUÁRIOS E PERMISSÕES*/
+-- Ultima de criar o BD 
 
+use locauto;
+
+/*USUÁRIOS E PERMISSÕES
+-- 7 na hr de criar bd
 
 DROP USER IF EXISTS 'user_cliente'@'localhost';
 DROP USER IF EXISTS 'user_funcionario'@'localhost';

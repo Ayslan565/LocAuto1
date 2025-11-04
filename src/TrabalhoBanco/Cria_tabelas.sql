@@ -1,3 +1,4 @@
+-- 1 Para Rodar na hr de criar bd
 
 CREATE TABLE IF NOT EXISTS tb_pessoa(
     id_pessoa int primary key,

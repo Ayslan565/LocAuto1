@@ -1,5 +1,5 @@
 
-
+-- 3º na hr de criar bd 
 /* 1. Inserir Pessoas */
 INSERT INTO tb_pessoa (cpf, nome, data_nasc, email, telefone1) VALUES 
 ('11122233344', 'Ana Silva', '1990-05-15', 'ana.silva@email.com', 11987654321),

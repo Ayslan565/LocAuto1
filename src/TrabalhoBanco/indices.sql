@@ -1,3 +1,5 @@
+-- 5º na hr da criar bd
+
 /* ÍNDICES */
 use locauto;
 
