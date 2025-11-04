@@ -23,7 +23,17 @@ const mockData = {
     ],
     contratos: [
          { id: 'C001', cliente: 'João Silva', carro: 'Onix Plus', inicio: '2025-10-01', fim: '2025-10-30', valor: 1500.00 },
-    ]
+    ],
+    // NOVO DADO: Matriz de Acessos baseada na imagem
+    acessos: {
+        'S': 'Select (Buscar dados)',
+        'I': 'Insert (Criar dados)',
+        'U': 'Update (Atualiza dados)', 
+        'D': 'Delete (Deleta dados)',
+        'CLIENTE': 'S Carro, S Contrato',
+        'FUNCIONARIO': 'S/I/U Pessoa, S/I/U Cliente, S/I/U Contrato',
+        'GERENTE': 'S/I/U/D Funcionário, S/I/U/D Pessoa, S/I/U/D Cliente, S/I/U/D Contrato, S/I/U/D Carro'
+    },
 };
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -90,6 +100,8 @@ document.addEventListener('DOMContentLoaded', () => {
             // Conteúdo de contratos é semi-estático, mas vamos atualizar a tabela
             const table = document.querySelector('#contratos-view .data-table tbody');
             if (table) table.innerHTML = getTableRows('Contrato', mockData.contratos);
+        } else if (targetId === 'acessos-view') {
+            renderAcessosView();
         }
     };
 
@@ -194,6 +206,43 @@ document.addEventListener('DOMContentLoaded', () => {
         return html;
     }
 
+    // ------------------- RENDERIZAÇÃO DE ACESSOS -------------------
+    
+    window.renderAcessosView = () => {
+        const container = document.getElementById('acessos-container');
+        if (!container) return;
+
+        const accessData = mockData.acessos;
+        let html = `
+            <h4>Matriz de Acessos por Perfil (CRUD)</h4>
+            <div class="access-table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Perfil</th>
+                            <th>Entidades Acessadas e Permissões (S/I/U/D)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>CLIENTE</td><td>${accessData.CLIENTE}</td></tr>
+                        <tr><td>FUNCIONARIO</td><td>${accessData.FUNCIONARIO}</td></tr>
+                        <tr><td>GERENTE</td><td>${accessData.GERENTE}</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <h4 style="margin-top: 30px; border-bottom: none;">Legenda dos Acessos (CRUD):</h4>
+            <ul style="list-style-type: none; padding: 0;">
+                <li><span style="font-weight: bold;">S</span> - ${accessData.S}</li>
+                <li><span style="font-weight: bold;">I</span> - ${accessData.I}</li>
+                <li><span style="font-weight: bold;">U</span> - ${accessData.U} (PUT/PATCH)</li>
+                <li><span style="font-weight: bold;">D</span> - ${accessData.D}</li>
+            </ul>
+        `;
+        
+        container.innerHTML = html;
+    }
+
 
     /** Simulação da função de pesquisa (Onde você faria a chamada GET com o filtro) */
     window.searchData = (viewId, entityName, entityKey) => {
@@ -279,7 +328,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // ------------------- LOGOUT -------------------
+    //  ------------------- LOGOUT -------------------
     window.logout = () => {
         if (confirm("Deseja realmente sair do sistema?")) {
             document.getElementById('dashboard-screen').classList.remove('active');

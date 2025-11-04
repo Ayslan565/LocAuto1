@@ -163,4 +163,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Garante que o ajuste inicial é feito após tudo carregar
     window.onload = () => ajustarCampos('');
-});
+}); 
