@@ -1,39 +1,86 @@
 package com.locadora.LocAuto.Model;
 
 import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Column; 
+import java.util.Date;
+import java.math.BigDecimal;
 
 @Entity
 @Table (name= "tb_contrato")
 public class Contrato {
     
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer ID_Contrato;
+    @GeneratedValue(strategy = GenerationType.IDENTITY) // RESTAURADO para AUTO_INCREMENT (estabilidade)
+    @Column(name = "id_contrato")
+    private Integer idContrato; // Corrigido para camelCase
 
+    @Column(name = "data_inicio")
+    private Date dataInicio;
+    
+    @Column(name = "data_fim")
+    private Date dataFim;
+    
+    @Column(name = "valor_total", precision = 10, scale = 2)
+    private BigDecimal valorTotal;
+
+    // --- Relações FK conforme script SQL ---
+    
+    // Liga a FK fk_id_funcionario à PK id_funcionarios
     @ManyToOne
-    @JoinColumn(name = "funcionario_id")
+    @JoinColumn(name = "fk_id_funcionario", referencedColumnName = "id_funcionarios")
     private Funcionario funcionario;
     
     @ManyToOne
-    @JoinColumn(name = "carro_id")
+    @JoinColumn(name = "fk_id_carro", referencedColumnName = "id_carro")
     private Carro carro;
     
+    // O contrato é ligado ao Cliente (ou ao Usuario que representa o Cliente)
+    // Usaremos a FK do Contrato para a tabela Usuarios para ser mais preciso com seu BD:
     @ManyToOne
-    @JoinColumn(name = "cliente_id")
-    private Cliente cliente;
+    @JoinColumn(name = "fk_id_usuario_cliente", referencedColumnName = "id_usuario")
+    private Usuario usuarioCliente;
 
-    public Integer getID_Contrato() {
-        return ID_Contrato;
+
+    public Contrato() {
+    }
+
+    // Getters and Setters (corrigidos para camelCase)
+    public Integer getIdContrato() {
+        return idContrato;
     }
     
-    public void setID_Contrato(Integer ID_Contrato) {
-        this.ID_Contrato = ID_Contrato;
+    public void setIdContrato(Integer idContrato) {
+        this.idContrato = idContrato;
+    }
+
+    public Date getDataInicio() {
+        return dataInicio;
+    }
+
+    public void setDataInicio(Date dataInicio) {
+        this.dataInicio = dataInicio;
+    }
+
+    public Date getDataFim() {
+        return dataFim;
+    }
+
+    public void setDataFim(Date dataFim) {
+        this.dataFim = dataFim;
+    }
+
+    public BigDecimal getValorTotal() {
+        return valorTotal;
+    }
+
+    public void setValorTotal(BigDecimal valorTotal) {
+        this.valorTotal = valorTotal;
     }
 
     public Funcionario getFuncionario() {
@@ -52,14 +99,11 @@ public class Contrato {
         this.carro = carro;
     }
 
-    public Cliente getCliente() {
-        return cliente;
+    public Usuario getUsuarioCliente() {
+        return usuarioCliente;
     }
 
-    public void setCliente(Cliente cliente) {
-        this.cliente = cliente;
-    }
-
-    public Contrato() {
+    public void setUsuarioCliente(Usuario usuarioCliente) {
+        this.usuarioCliente = usuarioCliente;
     }
 }

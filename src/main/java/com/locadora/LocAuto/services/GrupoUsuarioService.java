@@ -23,6 +23,12 @@ public class GrupoUsuarioService {
         return repositorioGrupoUsuario.findById(id);
     }
     
+    /**
+     * Busca um GrupoUsuario pelo nome do grupo (ex: "CLIENTE" ou "GERENTE").
+     * Este método é crucial para o cadastro de novos usuários.
+     * @param nome O nome do grupo a ser buscado.
+     * @return Um Optional contendo o GrupoUsuario, se encontrado.
+     */
     public Optional<GrupoUsuario> buscarPorNome(String nome) {
         return repositorioGrupoUsuario.findByNomeGrupo(nome);
     }

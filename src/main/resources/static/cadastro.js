@@ -40,7 +40,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (input) {
                     input.removeAttribute('required');
                     if (input.tagName === 'INPUT' || input.tagName === 'TEXTAREA') {
-                        input.value = ''; // Limpa o valor ao trocar de tipo
+                        // Não limpamos o valor aqui, pois queremos preservar os dados
+                        // input.value = ''; 
                     }
                 }
             });
@@ -85,8 +86,6 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         
-        // **RESTRIÇÃO DE TIPO DE CADASTRO REMOVIDA PARA TESTES**
-        
         // --- VALIDAÇÃO DE SENHA ---
         if (senha !== confirmacaoSenha) {
             if (passwordErrorElement) passwordErrorElement.classList.remove('hidden');
@@ -102,25 +101,27 @@ document.addEventListener('DOMContentLoaded', () => {
         // Definindo o login (usando o email como login)
         const login = email; 
 
-        // 2. CONSTRUÇÃO DA PESSOA ANINHADA (Keys em PascalCase/Maiúsculo para o Java)
+        // 2. CONSTRUÇÃO DA PESSOA ANINHADA
         const dadosPessoa = {
             "Id": null,
             "CPF": getVal('cpf'),
             "nome": getVal('nome'),
-            "data_nasc": getVal('data_nasc'),
+            "data_nasc": getVal('data_nasc') || null, 
             "Email": email,
-            "telefone1": getVal('telefone1'),
-            "cep": getVal('cep'),
-            "endereco": getVal('endereco'),
-            "complemento": getVal('complemento'),
-            "municipio": getVal('municipio'),
-            "uf": getVal('uf'),
-            // Note: telefone2 não existe no HTML, mas seria adicionado aqui se existisse
+            "telefone1": getVal('telefone1') || null, 
+            "telefone2": getVal('telefone2') || null, 
+            "cep": getVal('cep') || null,
+            "endereco": getVal('endereco') || null, 
+            "complemento": getVal('complemento') || null,
+            "municipio": getVal('municipio') || null,
+            "uf": getVal('uf') || null,
         };
         
         // 3. COLETA DE DADOS ESPECÍFICOS E CONSTRUÇÃO DO OBJETO RAIZ
         let dadosFinais = {};
         let endpoint = '';
+        let porta = 8080; // Assumindo a porta 8080 do Spring Boot
+
         
         if (tipo === 'CLIENTE') {
             dadosFinais = {
@@ -129,22 +130,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 "login": login,
                 "senhaPura": senha,
             };
-            endpoint = '/detalhescliente/add'; // Endpoint Cliente
+            endpoint = `http://localhost:${porta}/detalhescliente/add`; // Endpoint Cliente
             
         } else if (tipo === 'FUNCIONARIO' || tipo === 'GERENTE') {
-             // DTO para Funcionario (Assumindo que você terá um DTO FuncionarioCadastroDTO no Java)
+             // DTO para Funcionario (FuncionarioCadastroDTO)
              dadosFinais = {
                  "id_funcionario": null,
                  "data_admissao": getVal('dataAdmissao'),
                  "cargo": getVal('cargo'),
                  "salario": getVal('salario'),
-                 "pessoa": dadosPessoa,
+                 "pessoa": dadosPessoa, // Pessoa aninhada
                  "login": login,
                  "senhaPura": senha,
                  "tipoCadastro": tipo // Indica se é FUNCIONARIO ou GERENTE
              };
-             // Você precisará de um Controller/Endpoint separado para Funcionario
-             endpoint = '/detalhesfuncionario/add'; 
+             endpoint = `http://localhost:${porta}/detalhesfuncionario/add`; // Endpoint Funcionário
              
         } else {
              alert('ERRO INTERNO: Tipo de cadastro não mapeado.');
@@ -163,33 +163,32 @@ document.addEventListener('DOMContentLoaded', () => {
         })
         .then(response => {
             if (response.ok) {
-                // Sucesso no servidor (200, 201)
                 return response.text();
             }
             return response.text().then(errorMessage => {
-                 // Tratamento de erro 404/405/500
-                 throw new Error(`Erro no servidor: Status ${response.status}. Mensagem: ${errorMessage.substring(0, 100)}...`);
+                // Tenta extrair a mensagem de erro detalhada do servidor
+                let serverError = errorMessage.match(/\[(.*?)\]/);
+                let displayMessage = serverError ? serverError[1] : `Erro no servidor: Status ${response.status}`;
+                throw new Error(displayMessage);
             });
         })
         .then(data => {
-            // **REMOVIDO O POP-UP DE SUCESSO**
-            // alert(`✅ [SUCESSO] Cadastro de ${tipo} finalizado!`);
-
-            // Limpa o formulário e reseta o estado
-            form.reset();
-            tipoBotoes.forEach(btn => btn.classList.remove('selected'));
-            if (tipoSelectHidden) tipoSelectHidden.value = '';
-            ajustarCampos('');
+            // Exibe uma mensagem de sucesso
+            alert(`✅ Cadastro de ${tipo} realizado com sucesso!`);
             
-            // Opcional: Redirecionar para o login
-            window.location.href = 'index.html'; 
+            // REDIRECIONAMENTO APÓS SUCESSO
+            window.location.href = '/index.html'; // Redireciona para a página inicial ou de login.
         })
         .catch(error => {
             console.error('Falha na requisição:', error);
-            alert('❌ ERRO: Falha ao cadastrar. Verifique o console. ' + error.message);
+            alert('❌ ERRO: Falha ao cadastrar. ' + error.message);
         });
     });
 
     // Garante que o ajuste inicial é feito após tudo carregar
     window.onload = () => ajustarCampos('');
 });
+
+// Nota: O código de Mock Data e Renderização de Tabela (originalmente abaixo desta linha)
+// foi omitido aqui, pois é de navegabilidade (index.js), mas deve ser mantido no seu
+// script principal para fins de demonstração (se não for index.js).

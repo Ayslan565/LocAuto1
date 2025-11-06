@@ -4,8 +4,8 @@ import java.util.Date;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
+import jakarta.persistence.GeneratedValue; // Adicionado
+import jakarta.persistence.GenerationType; // Adicionado
 import jakarta.persistence.Id;
 import jakarta.persistence.Inheritance;
 import jakarta.persistence.Table;
@@ -18,10 +18,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Inheritance(strategy = InheritanceType.JOINED)
 public class Pessoa {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    protected Integer Id;
+@Id 
+@GeneratedValue(strategy = GenerationType.IDENTITY) // NOVO: Geração automática de ID pelo BD
+@Column(name = "id_pessoa") 
+protected Integer Id;
 
     // --- Campos do banco de dados (tb_pessoa) ---
 
@@ -149,7 +149,7 @@ public class Pessoa {
     }
 
     public void setEmail(String email) {
-        email = email;
+        this.email = email;
     }
 
     public String getTelefone1() {

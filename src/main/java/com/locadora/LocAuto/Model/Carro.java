@@ -5,31 +5,55 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Column; 
 
 @Entity
 @Table (name = "tb_carro")
 public class Carro {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer Id_Carro;
+    @GeneratedValue(strategy = GenerationType.IDENTITY) // RESTAURADO para AUTO_INCREMENT (estabilidade)
+    @Column(name = "id_carro") 
+    private Integer idCarro; // Corrigido para camelCase
+    
+    @Column(name = "placa") 
     private String placa;
-    private float Quilometragem;
-    private String Cor;
-    private Boolean Status;
-    private int AnoFabricacao;
-    private String Nome;
-
-
+    
+    @Column(name = "quilometragem") 
+    private Double quilometragem; // Alterado para Double (boa prática)
+    
+    @Column(name = "cor")
+    private String cor; // Corrigido para camelCase
+    
+    @Column(name = "status")
+    private Boolean status; // Corrigido para camelCase
+    
+    @Column(name = "ano_fabricacao")
+    private Integer anoFabricacao; // Corrigido para camelCase e Integer
+    
+    @Column(name = "nome")
+    private String nome; // Corrigido para camelCase
 
     public Carro() {    
     }
     
-    public int getId_Carro() {
-        return Id_Carro;
+    // Construtor completo corrigido
+    public Carro(Integer idCarro, String placa, Double quilometragem, String cor, Boolean status, Integer anoFabricacao, String nome) {
+        this.idCarro = idCarro;
+        this.placa = placa;
+        this.quilometragem = quilometragem;
+        this.cor = cor;
+        this.status = status;
+        this.anoFabricacao = anoFabricacao;
+        this.nome = nome;
     }
 
-    public void setId_Carro(int id_Carro) {
-        Id_Carro = id_Carro;
+    // Getters and Setters (corrigidos para camelCase)
+    public Integer getIdCarro() {
+        return idCarro;
+    }
+
+    public void setIdCarro(Integer idCarro) {
+        this.idCarro = idCarro;
     }
 
     public String getPlaca() {
@@ -40,80 +64,56 @@ public class Carro {
         this.placa = placa;
     }
 
-    public float getQuilometragem() {
-        return Quilometragem;
+    public Double getQuilometragem() {
+        return quilometragem;
     }
 
-    public void setQuilometragem(float quilometragem) {
-        Quilometragem = quilometragem;
+    public void setQuilometragem(Double quilometragem) {
+        this.quilometragem = quilometragem;
     }
 
     public String getCor() {
-        return Cor;
+        return cor;
     }
 
     public void setCor(String cor) {
-        Cor = cor;
+        this.cor = cor;
     }
 
     public Boolean getStatus() {
-        return Status;
+        return status;
     }
 
     public void setStatus(Boolean status) {
-        Status = status;
+        this.status = status;
     }
 
-    public int getAnoFabricacao() {
-        return AnoFabricacao;
+    public Integer getAnoFabricacao() {
+        return anoFabricacao;
     }
 
-    public void setAnoFabricacao(int anoFabricacao) {
-        AnoFabricacao = anoFabricacao;
+    public void setAnoFabricacao(Integer anoFabricacao) {
+        this.anoFabricacao = anoFabricacao;
     }
 
     public String getNome() {
-        return Nome;
+        return nome;
     }
 
     public void setNome(String nome) {
-        Nome = nome;
+        this.nome = nome;
     }
-
-    public Carro(int id_Carro, String placa, float quilometragem, String cor, Boolean status, int anoFabricacao, String nome) {
-        Id_Carro = id_Carro;
-        this.placa = placa;
-        Quilometragem = quilometragem;
-        Cor = cor;
-        Status = status;
-        AnoFabricacao = anoFabricacao;
-        Nome = nome;
-    }
-
+    
     @Override
     public String toString() {
         return "Carro{" +
-                "Id_Carro=" + Id_Carro +
+                "idCarro=" + idCarro +
                 ", placa='" + placa + '\'' +
-                ", Quilometragem=" + Quilometragem +
-                ", Cor='" + Cor + '\'' +
-                ", Status='" + Status + '\'' +
-                ", AnoFabricacao=" + AnoFabricacao +
-                ", Nome='" + Nome + '\'' +
+                ", quilometragem=" + quilometragem +
+                ", cor='" + cor + '\'' +
+                ", status=" + status +
+                ", anoFabricacao=" + anoFabricacao +
+                ", nome='" + nome + '\'' +
                 '}';
     }
-    public String verCarro() {
-        return String.format(
-                "ID: %d%n" +
-                        "Placa: %s%n" +
-                        "Quilometragem: %.2f km%n" +
-                        "Cor: %s%n" +
-                        "Status: %s%n" +
-                        "Ano de Fabricação: %d%n" +
-                        "Nome: %s%n" +
-                        "-----------------------------",
-                Id_Carro, placa, Quilometragem, Cor, Status, AnoFabricacao, Nome
-        );
-    }
-
 }
