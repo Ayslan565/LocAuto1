@@ -9,34 +9,7 @@
 </head>
 <body>
 
-    <div id="login-screen" class="screen active">
-        <div class="login-container">
-            <h1>LocAuto Login</h1>
-            <p>Gerenciamento de Locações</p>
-            <form id="login-form">
-                <div class="input-group">
-                    <label for="username">Usuário (CPF/Email)</label>
-                    <input type="text" id="username" required>
-                </div>
-                <div class="input-group">
-                    <label for="password">Senha</label>
-                    <input type="password" id="password" required>
-                </div>
-                <button type="submit" class="btn primary">Entrar</button>
-                
-                <div class="login-info">
-                    <p>Simulação: Use Usuário: <strong>admin</strong> e Senha: <strong>123</strong></p>
-                </div>
-                
-                <div class="registration-link">
-                    <p>Novo por aqui? <a href="cadastro.html">Cadastre-se agora</a></p>
-                </div>
-                
-            </form>
-        </div>
-    </div>
-
-    <div id="dashboard-screen" class="screen">
+    <div id="dashboard-screen" class="screen active" style="display: flex;"> 
         
         <aside class="sidebar">
             <div class="logo">LocAuto Admin</div>
@@ -46,18 +19,18 @@
                 </a>
                 <div class="nav-section-title">Gerenciamento de Entidades</div>
                 <a href="#" class="nav-item" data-target="pessoas-view">
-                    <i class="fas fa-users"></i> Pessoas (CRUD)
+                    <i class="fas fa-users"></i> Pessoas 
                 </a>
                 <a href="#" class="nav-item" data-target="clientes-view">
-                    <i class="fas fa-user-tie"></i> **Clientes (CRUD)** </a>
+                    <i class="fas fa-user-tie"></i> **Clientes ** </a>
                 <a href="#" class="nav-item" data-target="funcionarios-view">
-                    <i class="fas fa-id-card"></i> **Funcionários (CRUD)**
+                    <i class="fas fa-id-card"></i> **Funcionários **
                 </a>
                 <a href="#" class="nav-item" data-target="carros-view">
-                    <i class="fas fa-car"></i> **Carros (CRUD)**
+                    <i class="fas fa-car"></i> **Carros **
                 </a>
                 <a href="#" class="nav-item" data-target="contratos-view">
-                    <i class="fas fa-file-signature"></i> Contratos (CRUD)
+                    <i class="fas fa-file-signature"></i> Contratos 
                 </a>
                 <a href="#" class="nav-item" data-target="acessos-view">
                     <i class="fas fa-lock"></i> Níveis de Acesso

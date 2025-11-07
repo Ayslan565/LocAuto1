@@ -19,20 +19,18 @@ public class SecurityConfig {
     @Autowired
     private CustomUserDetailsService userDetailsService;
     
-    // Injeta o PasswordEncoder que agora é definido em AppConfig
     @Autowired 
     private PasswordEncoder passwordEncoder; 
-
-    // O método @Bean public PasswordEncoder passwordEncoder() DEVE TER SIDO REMOVIDO DESTA CLASSE
-    
 
     /**
      * Configura o UserDetailsService e o PasswordEncoder para o Spring Security.
      */
     @Autowired
     public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
+        // Esta configuração será ignorada pelo Spring Security se o AppConfig for configurado,
+        // mas é mantida por segurança caso AppConfig não seja lido primeiro.
         auth.userDetailsService(userDetailsService)
-            .passwordEncoder(passwordEncoder); // Usa o campo injetado
+            .passwordEncoder(passwordEncoder); 
     }
 
     /**
@@ -43,25 +41,27 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable()) // Desabilita CSRF para API's REST
             .authorizeHttpRequests(auth -> auth
-                // Permite acesso irrestrito ao cadastro e arquivos estáticos
+                // CRÍTICO: Libera o root e todas as páginas estáticas para evitar loop de redirecionamento
+                .requestMatchers("/", "/login.html", "/cadastro.html", "/cadastro.js", "/styles.css", "/api/public/**").permitAll()
+                
+                // Libera o POST de cadastro para clientes/funcionários
                 .requestMatchers(HttpMethod.POST, "/detalhescliente/add").permitAll() 
                 .requestMatchers(HttpMethod.POST, "/detalhesfuncionario/add").permitAll() 
-                .requestMatchers("/cadastro.html", "/cadastro.js", "/styles.css", "/api/public/**").permitAll()
                 
-                // Permite acesso ao endpoint de credenciais SOMENTE se autenticado
+                // Endpoint de permissões precisa de autenticação
                 .requestMatchers("/api/credenciais/perfil").authenticated()
 
-                // Qualquer outra requisição deve ser autenticada
+                // QUALQUER OUTRA REQUISIÇÃO (incluindo /index.html) DEVE SER AUTENTICADA
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form
                 .loginPage("/login.html") 
-                .defaultSuccessUrl("/index.html", true) 
+                .defaultSuccessUrl("/index.html", true) // Redireciona para o PROTEGIDO /index.html
                 .permitAll()
             )
             .logout(logout -> logout
                 .logoutRequestMatcher(new AntPathRequestMatcher("/logout"))
-                .logoutSuccessUrl("/login.html")
+                .logoutSuccessUrl("/login.html") // Redireciona para a tela de login após logout
                 .permitAll()
             );
 

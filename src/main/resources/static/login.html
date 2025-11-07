@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LocAuto | Login</title>
+    <link rel="stylesheet" href="styles.css"> 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    </head>
+<body>
+
+    <div id="login-screen" class="screen active">
+        <div class="login-container">
+            <h1>LocAuto Login</h1>
+            <p>Gerenciamento de Locações</p>
+            
+            <form id="login-form" method="POST" action="/login"> 
+                <div class="input-group">
+                    <label for="username">Usuário (CPF/Email)</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+                <div class="input-group">
+                    <label for="password">Senha</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                
+                <button type="submit" class="btn primary">Entrar</button>
+                
+                <div class="login-info">
+                    <p>Simulação: Usuários cadastrados (Verificar BD)</p>
+                </div>
+                
+                <div class="registration-link">
+                    <p>Novo por aqui? <a href="cadastro.html">Cadastre-se agora</a></p>
+                </div>
+                
+            </form>
+        </div>
+    </div>
+    
+    <script src="script.js"></script> 
+</body>
+</html>
