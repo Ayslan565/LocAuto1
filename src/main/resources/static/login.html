@@ -5,39 +5,50 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LocAuto | Login</title>
     <link rel="stylesheet" href="styles.css"> 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-    </head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"> 
+</head>
 <body>
 
     <div id="login-screen" class="screen active">
-        <div class="login-container">
-            <h1>LocAuto Login</h1>
-            <p>Gerenciamento de Locações</p>
+
+        <div class="login-area">
             
-            <form id="login-form" method="POST" action="/login"> 
-                <div class="input-group">
-                    <label for="username">Usuário (CPF/Email)</label>
-                    <input type="text" id="username" name="username" required>
-                </div>
-                <div class="input-group">
-                    <label for="password">Senha</label>
-                    <input type="password" id="password" name="password" required>
-                </div>
+            <div class="login-brand">LOCAUTO</div>
+
+            <div class="login-container">
                 
-                <button type="submit" class="btn primary">Entrar</button>
+                <h1>Login</h1>
+                <p>Gerenciamento de Locações</p>
                 
-                <div class="login-info">
-                    <p>Simulação: Usuários cadastrados (Verificar BD)</p>
-                </div>
+                <p id="login-error-message" class="hidden" style="color: var(--danger-color); font-weight: bold; margin-bottom: 10px;"></p>
                 
-                <div class="registration-link">
-                    <p>Novo por aqui? <a href="cadastro.html">Cadastre-se agora</a></p>
-                </div>
-                
-            </form>
+                <form id="login-form"> 
+                    <div class="input-group">
+                        <label for="username">Usuário (E-mail)</label>
+                        <input type="text" id="username" name="username" required>
+                    </div>
+                    
+                    <div class="input-group input-group-with-icon">
+                        <label for="password">Senha</label>
+                        <input type="password" id="password" name="password" required>
+                        <i class="fas fa-eye password-toggle" data-target="password" onclick="togglePasswordVisibility(this)"></i>
+                    </div>
+                    
+                    <button type="submit" class="btn primary">Entrar</button>
+                    
+                    <div class="registration-link">
+                        <p>Novo por aqui? <a href="cadastro.html" id="register-link">Cadastre-se agora</a></p>
+                    </div>
+                </form>
+            </div>
         </div>
+
+        <div class="background-slideshow">
+            <div class="slide active" style="background-image: url('images/fundo_login.png');"></div>
+             </div>
+
     </div>
     
-    <script src="script.js"></script> 
+    <script src="login-script.js"></script> 
 </body>
 </html>

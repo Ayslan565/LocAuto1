@@ -1,16 +1,39 @@
 package com.locadora.LocAuto.config;
 
 import com.locadora.LocAuto.services.CustomUserDetailsService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationProvider; // Importação CRÍTICA
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.crypto.password.PasswordEncoder; 
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Configuration
 @EnableWebSecurity
@@ -18,53 +41,156 @@ public class SecurityConfig {
 
     @Autowired
     private CustomUserDetailsService userDetailsService;
-    
-    @Autowired 
-    private PasswordEncoder passwordEncoder; 
 
-    /**
-     * Configura o UserDetailsService e o PasswordEncoder para o Spring Security.
-     */
     @Autowired
-    public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
-        // Esta configuração será ignorada pelo Spring Security se o AppConfig for configurado,
-        // mas é mantida por segurança caso AppConfig não seja lido primeiro.
-        auth.userDetailsService(userDetailsService)
-            .passwordEncoder(passwordEncoder); 
+    private PasswordEncoder passwordEncoder;
+    
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    // --- Handlers de Sucesso e Falha para o Filtro JSON ---
+    
+    private org.springframework.security.web.authentication.AuthenticationSuccessHandler jsonSuccessHandler() {
+        return (request, response, authentication) -> {
+            String primary = authentication.getAuthorities().stream()
+                    .map(GrantedAuthority::getAuthority)
+                    .findFirst()
+                    .orElse("ROLE_USER");
+
+            response.setStatus(200);
+            response.setContentType("application/json");
+            response.getWriter().write("{\"success\":true,\"redirect\":\"/index.html?role=" + URLEncoder.encode(primary, StandardCharsets.UTF_8) + "\"}");
+        };
+    }
+
+    private org.springframework.security.web.authentication.AuthenticationFailureHandler jsonFailureHandler() {
+        return (request, response, exception) -> {
+            // Este handler é disparado se a autenticação FALHAR (Bad Credentials)
+            response.setStatus(401); 
+            response.setContentType("application/json");
+            response.getWriter().write("{\"error\":\"Credenciais inválidas\",\"message\":\"" + exception.getMessage() + "\"}");
+        };
     }
 
     /**
-     * Configuração das regras de autorização HTTP (URL access).
+     * Define o AuthenticationManager como um Bean (Fonte Única).
      */
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-            .csrf(csrf -> csrf.disable()) // Desabilita CSRF para API's REST
-            .authorizeHttpRequests(auth -> auth
-                // CRÍTICO: Libera o root e todas as páginas estáticas para evitar loop de redirecionamento
-                .requestMatchers("/", "/login.html", "/cadastro.html", "/cadastro.js", "/styles.css", "/api/public/**").permitAll()
-                
-                // Libera o POST de cadastro para clientes/funcionários
-                .requestMatchers(HttpMethod.POST, "/detalhescliente/add").permitAll() 
-                .requestMatchers(HttpMethod.POST, "/detalhesfuncionario/add").permitAll() 
-                
-                // Endpoint de permissões precisa de autenticação
-                .requestMatchers("/api/credenciais/perfil").authenticated()
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+        return config.getAuthenticationManager();
+    }
 
-                // QUALQUER OUTRA REQUISIÇÃO (incluindo /index.html) DEVE SER AUTENTICADA
-                .anyRequest().authenticated()
-            )
-            .formLogin(form -> form
-                .loginPage("/login.html") 
-                .defaultSuccessUrl("/index.html", true) // Redireciona para o PROTEGIDO /index.html
-                .permitAll()
-            )
-            .logout(logout -> logout
-                .logoutRequestMatcher(new AntPathRequestMatcher("/logout"))
-                .logoutSuccessUrl("/login.html") // Redireciona para a tela de login após logout
-                .permitAll()
-            );
 
+    /**
+     * Configura a Cadeia de Filtros de Segurança do Spring Security.
+     */
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http, AuthenticationManager authenticationManager) throws Exception {
+
+        // 1. Cria e configura o filtro customizado para JSON
+        UsernamePasswordAuthenticationFilter jsonAuthFilter = new UsernamePasswordAuthenticationFilter(authenticationManager) {
+            private final ObjectMapper mapper = new ObjectMapper();
+            @Override
+            public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
+                try {
+                    Map<String, String> creds = mapper.readValue(request.getInputStream(), Map.class);
+                    String username = creds.getOrDefault("username", creds.getOrDefault("email", ""));
+                    String password = creds.getOrDefault("password", "");
+                    
+                    request.setAttribute("username", username); 
+                    
+                    return this.getAuthenticationManager().authenticate(
+                            new UsernamePasswordAuthenticationToken(username, password)
+                    ); 
+                } catch (IOException ex) {
+                    throw new RuntimeException(ex);
+                }
+            }
+        };
+
+        // Configura o filtro JSON
+        jsonAuthFilter.setFilterProcessesUrl("/api/credenciais/login");
+        jsonAuthFilter.setAuthenticationFailureHandler(jsonFailureHandler()); 
+        jsonAuthFilter.setAuthenticationSuccessHandler(jsonSuccessHandler());
+        
+        // 2. Desativa CSRF
+        http.csrf(AbstractHttpConfigurer::disable);
+
+        // 3. Adiciona o filtro customizado na posição correta
+        http.addFilterAt(jsonAuthFilter, UsernamePasswordAuthenticationFilter.class);
+
+        // 4. Configura a Autorização de Requisições HTTP
+        http.authorizeHttpRequests(auth -> auth
+            // Libera a URL de Login, Cadastro e Estáticos
+            .requestMatchers(
+                "/", 
+                "/login.html", 
+                "/cadastro.html", 
+                "/login-script.js", 
+                "/cadastro.js", 
+                "/styles.css",
+                "/favicon.ico", 
+                "/index.html",  // <-- ADICIONAR
+                "/script.js",
+                "/images/",
+                "/api/public/**"
+            ).permitAll()
+            
+            // Libera endpoints POST de cadastro (sintaxe separada)
+            .requestMatchers(
+                HttpMethod.POST, 
+                "/detalhescliente/add", 
+                "/detalhesfuncionario/add",
+                "/api/credenciais/login"
+            ).permitAll()
+
+            // Define o que exige autenticação
+            .requestMatchers("/api/credenciais/perfil").authenticated() 
+            
+            // Regra Final: Qualquer outra requisição DEVE ser autenticada.
+            .anyRequest().authenticated()
+        );
+
+        // 5. Configura Exceções (Para o caso de tentar acessar recurso protegido sem logar)
+        http.exceptionHandling(exceptions -> exceptions
+            .authenticationEntryPoint((request, response, authException) -> {
+                // Este é o 401 que você estava vendo no console (acesso a recurso protegido)
+                response.setStatus(401);
+                response.setContentType("application/json");
+                response.getWriter().write("{\"error\":\"Não autorizado\",\"message\":\"Acesso negado. Você precisa se autenticar para acessar este recurso.\"}");
+            })
+        );
+        
+        // 6. Configura Sessão como STATELESS
+        http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+
+        // 7. Retorna a cadeia de filtros construída
         return http.build();
+    }
+
+    /**
+     * Define o Provedor de Autenticação.
+     */
+    @Bean
+    public AuthenticationProvider authenticationProvider() {
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        provider.setUserDetailsService(userDetailsService); 
+        provider.setPasswordEncoder(passwordEncoder); 
+        return provider;
+    }
+
+    /**
+     * Configura o CORS.
+     */
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(List.of("http://localhost:8080", "http://127.0.0.1:8080"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Cache-Control", "Content-Type"));
+        configuration.setAllowCredentials(true);
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 }

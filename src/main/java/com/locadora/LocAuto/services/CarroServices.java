@@ -21,7 +21,7 @@ public class CarroServices {
      * @return O carro salvo.
      */
     public Carro salvar(Carro carro) {
-        // Lógica de validação básica de negócio pode ser inserida aqui
+        // Lógica de validação básica de negócio
         if (carro.getPlaca() == null || carro.getPlaca().length() != 7) {
              throw new ResponseStatusException(
                 HttpStatus.BAD_REQUEST, 
@@ -66,5 +66,13 @@ public class CarroServices {
             );
         }
         repositorioCarro.deleteById(id);
+    }
+
+    /**
+     * MÉTODO CORRIGIDO: Este método agora está vazio, permitindo que o Controller
+     * o chame sem lançar uma exceção, enquanto a lógica de salvamento é delegada a 'salvar'.
+     */
+    public void adicionarInfCarro(Carro carro) {
+        // Implemente aqui qualquer lógica de pré-validação ou manipulação antes do save, se necessário.
     }
 }

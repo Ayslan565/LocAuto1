@@ -10,6 +10,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
@@ -20,29 +21,34 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Autowired
     private repositorioUsuario repositorioUsuario;
 
-    /**
-     * Carrega as informações do usuário pelo login (e-mail) para autenticação.
-     * Esta é a parte essencial do Spring Security.
-     */
     @Override
+    @Transactional
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         
-        // 1. Buscar o usuário pelo login (username é o campo 'login' na tb_usuarios)
         Usuario usuario = repositorioUsuario.findByLogin(username)
                 .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado: " + username));
 
-        // 2. Mapear a permissão (Grupo) do banco para o formato de ROLE do Spring Security
-        String nomeGrupo = usuario.getGrupoUsuario().getNomeGrupo();
-        
-        // As roles devem ser prefixadas com "ROLE_" (convenção do Spring Security)
-        List<GrantedAuthority> authorities = Collections.singletonList(
-                new SimpleGrantedAuthority("ROLE_" + nomeGrupo.toUpperCase())
-        );
+        String nomeGrupo = null;
+        if (usuario.getGrupoUsuario() != null) {
+            // Mantém o getter atual do seu modelo (getNomeGrupo). Ajuste se seu modelo usar outro nome.
+            nomeGrupo = usuario.getGrupoUsuario().getNomeGrupo();
+        }
 
-        // 3. Retornar um objeto UserDetails que o Spring Security usará para validar a senha
+        List<GrantedAuthority> authorities = Collections.emptyList();
+        if (nomeGrupo != null && !nomeGrupo.isBlank()) {
+            authorities = Collections.singletonList(
+                    new SimpleGrantedAuthority("ROLE_" + nomeGrupo.toUpperCase())
+            );
+        }
+
+        // REMOÇÃO DO HACK: NÃO adicionamos {noop}. Aqui a senha retornada do banco
+        // deve ser a senha já hasheada (ex: BCrypt). O Spring Security fará a comparação
+        // usando o PasswordEncoder configurado em sua aplicação.
+        String senhaHashedDoBanco = usuario.getSenha();
+
         return new User(
                 usuario.getLogin(),      // Username
-                usuario.getSenha(),      // Senha (já criptografada do BD)
+                senhaHashedDoBanco,      // Senha hasheada lida do BD (BCrypt)
                 authorities              // Permissões
         );
     }
