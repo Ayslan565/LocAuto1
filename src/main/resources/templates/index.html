@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LocAuto | Dashboard Administrativo</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+</head>
+<body>
+
+    <div id="login-screen" class="screen active">
+        <div class="login-container">
+            <h1>LocAuto Login</h1>
+            <p>Gerenciamento de Locações</p>
+            <form id="login-form">
+                <div class="input-group">
+                    <label for="username">Usuário (CPF/Email)</label>
+                    <input type="text" id="username" required>
+                </div>
+                <div class="input-group">
+                    <label for="password">Senha</label>
+                    <input type="password" id="password" required>
+                </div>
+                <button type="submit" class="btn primary">Entrar</button>
+                <div class="login-info">
+                    <p>Simulação: Apenas clique em "Entrar" para prosseguir.</p>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="dashboard-screen" class="screen">
+        
+        <aside class="sidebar">
+            <div class="logo">LocAuto Admin</div>
+            <nav>
+                <a href="#" class="nav-item active" data-target="home-view">
+                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                </a>
+                <div class="nav-section-title">Gerenciamento de Entidades</div>
+                <a href="#" class="nav-item" data-target="pessoas-view">
+                    <i class="fas fa-users"></i> Pessoas (CRUD)
+                </a>
+                <a href="#" class="nav-item" data-target="clientes-view">
+                    <i class="fas fa-user-tie"></i> Clientes (CRUD)
+                </a>
+                <a href="#" class="nav-item" data-target="funcionarios-view">
+                    <i class="fas fa-id-card"></i> Funcionários (CRUD)
+                </a>
+                <a href="#" class="nav-item" data-target="carros-view">
+                    <i class="fas fa-car"></i> Carros (CRUD)
+                </a>
+                <a href="#" class="nav-item" data-target="contratos-view">
+                    <i class="fas fa-file-signature"></i> Contratos (CRUD)
+                </a>
+            </nav>
+            <div class="user-info">
+                <i class="fas fa-user-circle"></i> <span>Usuário Admin</span>
+                <button class="btn logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i></button>
+            </div>
+        </aside>
+
+        <main class="content">
+            <header class="header">
+                <h2>Bem-vindo ao Painel de Locação</h2>
+            </header>
+
+            <section id="home-view" class="view active">
+                <h3>Resumo Geral</h3>
+                <div class="kpi-cards">
+                    <div class="card kpi">
+                        <i class="fas fa-car primary-color"></i>
+                        <p>Total de Carros</p>
+                        <span>45</span>
+                    </div>
+                    <div class="card kpi">
+                        <i class="fas fa-file-signature secondary-color"></i>
+                        <p>Contratos Ativos</p>
+                        <span>12</span>
+                    </div>
+                    <div class="card kpi">
+                        <i class="fas fa-users success-color"></i>
+                        <p>Clientes Cadastrados</p>
+                        <span>89</span>
+                    </div>
+                </div>
+            </section>
+
+            <section id="pessoas-view" class="view">
+                <div class="crud-header">
+                    <h3>Gerenciar Pessoas</h3>
+                    <button class="btn primary" onclick="showForm('pessoas-view', 'create')">
+                        <i class="fas fa-plus"></i> Nova Pessoa
+                    </button>
+                </div>
+                <div class="card">
+                    <h4>Lista de Pessoas</h4>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nome</th>
+                                <th>CPF</th>
+                                <th>Email</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td>João Silva</td>
+                                <td>123.456.789-00</td>
+                                <td>joao@mail.com</td>
+                                <td>
+                                    <button class="btn small edit" onclick="showForm('pessoas-view', 'edit', 1)"><i class="fas fa-edit"></i></button>
+                                    <button class="btn small delete" onclick="confirmDelete(1)"><i class="fas fa-trash"></i></button>
+                                </td>
+                            </tr>
+                            </tbody>
+                    </table>
+                </div>
+
+                <div id="pessoas-form-container" class="form-overlay hidden">
+                    <div class="form-modal">
+                        <h4><span id="pessoas-form-title">Cadastrar</span> Pessoa</h4>
+                        <form id="pessoas-form" class="crud-form">
+                            <div class="form-row">
+                                <div class="input-group">
+                                    <label>Nome Completo</label>
+                                    <input type="text" name="nome" required>
+                                </div>
+                                <div class="input-group">
+                                    <label>CPF (11 dígitos)</label>
+                                    <input type="text" name="cpf" maxlength="11" required>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="input-group">
+                                    <label>Email</label>
+                                    <input type="email" name="email">
+                                </div>
+                                <div class="input-group">
+                                    <label>Telefone 1</label>
+                                    <input type="number" name="telefone1">
+                                </div>
+                                <div class="input-group">
+                                    <label>Data Nasc.</label>
+                                    <input type="date" name="data_nasc">
+                                </div>
+                            </div>
+                            <div class="form-section-title">Endereço</div>
+                            <div class="form-row">
+                                <div class="input-group">
+                                    <label>CEP (8 dígitos)</label>
+                                    <input type="text" name="cep" maxlength="8">
+                                </div>
+                                <div class="input-group">
+                                    <label>Município</label>
+                                    <input type="text" name="municipio">
+                                </div>
+                                <div class="input-group">
+                                    <label>UF</label>
+                                    <input type="text" name="uf" maxlength="2">
+                                </div>
+                            </div>
+                            <div class="input-group full-width">
+                                <label>Complemento</label>
+                                <input type="text" name="complemento">
+                            </div>
+                            
+                            <div class="form-actions">
+                                <button type="submit" class="btn primary">Salvar</button>
+                                <button type="button" class="btn secondary" onclick="hideForm('pessoas-view')">Cancelar</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </section>
+            
+            <section id="carros-view" class="view">
+                <div class="crud-header">
+                    <h3>Gerenciar Carros</h3>
+                    <button class="btn primary" onclick="showForm('carros-view', 'create')">
+                        <i class="fas fa-plus"></i> Novo Carro
+                    </button>
+                </div>
+                <div class="card">
+                    <h4>Frota Disponível</h4>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nome/Modelo</th>
+                                <th>Placa</th>
+                                <th>Ano</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>101</td>
+                                <td>Onix Plus</td>
+                                <td>ABC1D23</td>
+                                <td>2022</td>
+                                <td><span class="status-badge available">Disponível</span></td>
+                                <td>
+                                    <button class="btn small edit" onclick="showForm('carros-view', 'edit', 101)"><i class="fas fa-edit"></i></button>
+                                    <button class="btn small delete"><i class="fas fa-trash"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>102</td>
+                                <td>Renegade</td>
+                                <td>XYZ9E87</td>
+                                <td>2021</td>
+                                <td><span class="status-badge rented">Alugado</span></td>
+                                <td>
+                                    <button class="btn small edit" disabled><i class="fas fa-edit"></i></button>
+                                    <button class="btn small delete" disabled><i class="fas fa-trash"></i></button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div id="carros-form-container" class="form-overlay hidden">
+                    <div class="form-modal">
+                        <h4><span id="carros-form-title">Cadastrar</span> Carro</h4>
+                        <form id="carros-form" class="crud-form">
+                            <div class="form-row">
+                                <div class="input-group">
+                                    <label>Nome / Modelo</label>
+                                    <input type="text" name="nome" required>
+                                </div>
+                                <div class="input-group">
+                                    <label>Placa (7 dígitos)</label>
+                                    <input type="text" name="placa" maxlength="7" required>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="input-group">
+                                    <label>Ano Fabricação</label>
+                                    <input type="number" name="ano_fabricacao" min="1900" max="2100">
+                                </div>
+                                <div class="input-group">
+                                    <label>Quilometragem (km)</label>
+                                    <input type="number" name="quilometragem" step="0.01">
+                                </div>
+                                <div class="input-group">
+                                    <label>Cor</label>
+                                    <input type="text" name="cor">
+                                </div>
+                            </div>
+                            <div class="input-group">
+                                <label>Status</label>
+                                <select name="status">
+                                    <option value="1">Disponível</option>
+                                    <option value="0">Alugado/Manutenção</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-actions">
+                                <button type="submit" class="btn primary">Salvar</button>
+                                <button type="button" class="btn secondary" onclick="hideForm('carros-view')">Cancelar</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </section>
+            
+            <section id="contratos-view" class="view">
+                <div class="crud-header">
+                    <h3>Gerenciar Contratos</h3>
+                    <button class="btn primary" onclick="showForm('contratos-view', 'create')">
+                        <i class="fas fa-plus"></i> Novo Contrato
+                    </button>
+                </div>
+                <div class="card">
+                    <h4>Contratos em Andamento</h4>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID Contrato</th>
+                                <th>Cliente</th>
+                                <th>Carro</th>
+                                <th>Início</th>
+                                <th>Fim Prev.</th>
+                                <th>Valor Total</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>C001</td>
+                                <td>João Silva (ID: 1)</td>
+                                <td>Onix Plus (ID: 101)</td>
+                                <td>2025-10-01</td>
+                                <td>2025-10-30</td>
+                                <td>R$ 1.500,00</td>
+                                <td>
+                                    <button class="btn small view-details"><i class="fas fa-eye"></i></button>
+                                    <button class="btn small edit"><i class="fas fa-edit"></i></button>
+                                    <button class="btn small delete"><i class="fas fa-trash"></i></button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div id="contratos-form-container" class="form-overlay hidden">
+                    <div class="form-modal">
+                        <h4><span id="contratos-form-title">Abrir</span> Contrato</h4>
+                        <form id="contratos-form" class="crud-form">
+                            <div class="form-section-title">Dados do Contrato</div>
+                            <div class="form-row">
+                                <div class="input-group">
+                                    <label>Data Início</label>
+                                    <input type="date" name="data_inicio" required>
+                                </div>
+                                <div class="input-group">
+                                    <label>Data Fim Prevista</label>
+                                    <input type="date" name="data_fim">
+                                </div>
+                            </div>
+                            
+                            <div class="form-section-title">Seleção de Entidades (FKs)</div>
+                            <div class="form-row">
+                                <div class="input-group">
+                                    <label>Cliente (fk_id_cliente)</label>
+                                    <select name="fk_id_cliente" required>
+                                        <option value="">Selecione um Cliente</option>
+                                        <option value="1">1 - João Silva</option>
+                                        <option value="2">2 - Maria Souza</option>
+                                    </select>
+                                </div>
+                                <div class="input-group">
+                                    <label>Carro (fk_id_carro)</label>
+                                    <select name="fk_id_carro" required>
+                                        <option value="">Selecione um Carro</option>
+                                        <option value="101">101 - Onix Plus (ABC1D23)</option>
+                                        <option value="103">103 - HB20 (DEF4G56)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="form-section-title">Valores</div>
+                            <div class="input-group full-width">
+                                <label>Valor Total (R$)</label>
+                                <input type="number" name="valor_total" step="0.01">
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="submit" class="btn primary">Salvar Contrato</button>
+                                <button type="button" class="btn secondary" onclick="hideForm('contratos-view')">Cancelar</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </section>
+            
+            <section id="clientes-view" class="view">
+                <h3>Gerenciar Clientes</h3>
+                <p>O CRUD de Clientes seria similar ao de Pessoas, mas com uma etapa adicional de **vincular uma Pessoa já cadastrada** para criar a entidade Cliente (tb_cliente, que tem a FK para tb_pessoa).</p>
+                <p>Estrutura: Tabela de Clientes + Formulário de Criação/Edição.</p>
+            </section>
+            
+            <section id="funcionarios-view" class="view">
+                <h3>Gerenciar Funcionários</h3>
+                <p>O CRUD de Funcionários utilizaria a mesma lógica de Contratos:</p>
+                <ol>
+                    <li>Seleção de uma Pessoa (FK para tb_pessoa).</li>
+                    <li>Campos específicos: Data Admissão, Cargo, Salário.</li>
+                    <li>O campo `fk_id_contrato` pode ser nulo ou servir para vincular o funcionário ao contrato de trabalho, dependendo da regra de negócio (aqui mantemos simples e focaríamos nos campos principais).</li>
+                </ol>
+            </section>
+
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

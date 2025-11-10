@@ -1,0 +1,223 @@
+/* Variáveis de Cores e Reset Básico */
+:root {
+    --primary-color: #007bff;
+    --secondary-color: #6c757d;
+    --danger-color: #dc3545;
+    --background-color: #f8f9fa;
+    --text-dark: #212529;
+    --card-bg: #ffffff;
+    --border-color: #dee2e6;
+    --text-light: #ffffff; /* Necessário para botões primários */
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Arial', sans-serif;
+}
+
+body {
+    background-color: var(--background-color);
+    color: var(--text-dark);
+}
+
+/* Estrutura de Tela */
+.screen {
+    display: none;
+    width: 100%;
+    height: 100vh;
+}
+
+.screen.active {
+    display: flex;
+}
+
+/* Utilitários */
+.hidden {
+    display: none !important;
+}
+
+/* Layout da Tela de Login */
+#login-screen {
+    flex-direction: row;
+    background: var(--card-bg);
+}
+
+.login-area {
+    width: 40%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    position: relative;
+}
+
+.login-brand {
+    position: absolute;
+    top: 40px;
+    left: 120px;
+    font-size: 2em;
+    font-weight: bold;
+    color: var(--primary-color);
+    letter-spacing: 1px;
+}
+
+/* Formulário de Login */
+.login-container {
+    background: var(--card-bg);
+    padding: 40px;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    width: 400px;
+    max-width: 100%;
+    text-align: center;
+    border: 1px solid var(--border-color);
+}
+
+.login-container h1 {
+    color: var(--primary-color);
+    margin-bottom: 5px;
+}
+
+.login-container p {
+    color: var(--secondary-color);
+    margin-bottom: 20px;
+}
+
+/* Inputs */
+.input-group {
+    display: flex;
+    flex-direction: column; /* Ajuste para layout padrão de label acima do input */
+    align-items: flex-start;
+    margin-bottom: 15px;
+    width: 100%;
+}
+
+.input-group label {
+    margin-bottom: 5px;
+    font-weight: bold;
+    font-size: 0.9em;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 1em;
+}
+
+/* Ícone de Senha */
+.input-group-with-icon {
+    position: relative;
+}
+
+.input-group-with-icon input {
+    padding-right: 35px;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 10px;
+    top: 38px; /* Ajuste fino para alinhar com o input, considerando o label acima */
+    cursor: pointer;
+    color: #6c757d;
+    font-size: 0.95em;
+    z-index: 10;
+}
+
+/* Botões */
+.btn {
+    padding: 8px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s, opacity 0.3s;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn.primary {
+    background-color: var(--primary-color);
+    color: var(--text-light);
+}
+
+.btn.primary:hover {
+    background-color: #0056b3;
+}
+
+/* Link de Cadastro */
+.registration-link {
+    margin-top: 15px;
+    font-size: 0.9em;
+}
+
+.registration-link a {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.registration-link a:hover {
+    text-decoration: underline;
+}
+
+/* Slideshow de Fundo */
+.background-slideshow {
+    width: 60%;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+    background: #333;
+}
+
+.background-slideshow .slide {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    opacity: 0;
+    transition: opacity 1.5s ease-in-out;
+}
+
+.background-slideshow .slide.active {
+    opacity: 1;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    #login-screen {
+        flex-direction: column;
+    }
+    .login-area {
+        width: 100%;
+        height: 100vh;
+        position: relative;
+        z-index: 2;
+        background: rgba(255,255,255,0.8); /* Fundo translúcido sobre o slide */
+    }
+    .login-brand {
+        display: none;
+    }
+    .background-slideshow {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 1;
+    }
+    .login-container {
+        width: 90%;
+        background: #fff;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
+}
