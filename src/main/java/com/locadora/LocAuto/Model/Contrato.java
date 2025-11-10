@@ -1,7 +1,7 @@
 package com.locadora.LocAuto.Model;
 
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType; // <-- IMPORTAÇÃO ADICIONADA
+import jakarta.persistence.FetchType; 
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -19,7 +19,7 @@ public class Contrato {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY) 
     @Column(name = "id_contrato")
-    private Integer idContrato; // Corrigido para camelCase
+    private Integer idContrato; 
 
     @Column(name = "data_inicio")
     private Date dataInicio;
@@ -30,20 +30,20 @@ public class Contrato {
     @Column(name = "valor_total", precision = 10, scale = 2)
     private BigDecimal valorTotal;
 
+    // CAMPO CRÍTICO: FALTA DESTE CAMPO CAUSOU O ERRO.
+    @Column(name = "status_contrato")
+    private String statusContrato;
+
     // --- Relações FK conforme script SQL ---
     
-    // CORREÇÃO: Adicionado FetchType.LAZY para evitar que o Hibernate
-    // tente carregar o Funcionario (o que o user_cliente não pode fazer).
     @ManyToOne(fetch = FetchType.LAZY) 
     @JoinColumn(name = "fk_id_funcionario", referencedColumnName = "id_funcionarios")
     private Funcionario funcionario;
     
-    // CORREÇÃO: Adicionado FetchType.LAZY
     @ManyToOne(fetch = FetchType.LAZY) 
     @JoinColumn(name = "fk_id_carro", referencedColumnName = "id_carro")
     private Carro carro;
     
-    // CORREÇÃO: Adicionado FetchType.LAZY
     @ManyToOne(fetch = FetchType.LAZY) 
     @JoinColumn(name = "fk_id_usuario_cliente", referencedColumnName = "id_usuario")
     private Usuario usuarioCliente;
@@ -52,7 +52,7 @@ public class Contrato {
     public Contrato() {
     }
 
-    // Getters and Setters (corrigidos para camelCase)
+    // Getters and Setters
     public Integer getIdContrato() {
         return idContrato;
     }
@@ -83,6 +83,15 @@ public class Contrato {
 
     public void setValorTotal(BigDecimal valorTotal) {
         this.valorTotal = valorTotal;
+    }
+
+    // GETTER E SETTER NECESSÁRIOS PARA O SPRING DATA JPA
+    public String getStatusContrato() {
+        return statusContrato;
+    }
+
+    public void setStatusContrato(String statusContrato) {
+        this.statusContrato = statusContrato;
     }
 
     public Funcionario getFuncionario() {

@@ -1,13 +1,14 @@
 package com.locadora.LocAuto.repositorio;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-
 import com.locadora.LocAuto.Model.Carro;
+import java.util.List;
+
 @Repository
 public interface repositorioCarro extends JpaRepository<Carro, Integer> {
     
-    // Assumindo que a busca por placa é útil
-    // Optional<Carro> findByPlaca(String placa);
+    List<Carro> findByPlacaStartsWith(String placa);
+    
+    // Usado para o Dashboard
+    long countByStatus(boolean status);
 }
-
-// Arquivo: LocAuto/src/main/java/com/locadora/LocAuto/repositorio/repositorioContrato.java

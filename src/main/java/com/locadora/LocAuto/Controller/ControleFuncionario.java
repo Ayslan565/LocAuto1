@@ -2,6 +2,7 @@ package com.locadora.LocAuto.Controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,17 +19,14 @@ public class ControleFuncionario {
     @Autowired
     private FuncionarioService funcionarioService;
 
-    /**
-     * Endpoint que recebe o cadastro completo de Funcionário ou Gerente (baseado no tipoCadastro do DTO).
-     * Mapeado para POST /detalhesfuncionario/add
-     */
     @PostMapping("/add")
     public ResponseEntity<?> adicionarInfFuncionario(@RequestBody FuncionarioCadastroDTO dto) {
-        
-        // 1. O FuncionarioService trata o fluxo de salvar Pessoa, Funcionário e Usuário.
         Funcionario funcionarioSalvo = funcionarioService.adicionarInfFuncionario(dto);
-        
-        // 2. Retorna a entidade Funcionário salva com status 200 OK
         return ResponseEntity.ok(funcionarioSalvo);
+    }
+    
+    @GetMapping("/listar")
+    public Iterable<Funcionario> listarFuncionarios() {
+        return funcionarioService.listarFuncionarios();
     }
 }

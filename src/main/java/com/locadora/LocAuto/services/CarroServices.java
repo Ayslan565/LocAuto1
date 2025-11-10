@@ -15,13 +15,7 @@ public class CarroServices {
     @Autowired
     private repositorioCarro repositorioCarro;
 
-    /**
-     * Salva ou atualiza um carro no sistema.
-     * @param carro A entidade Carro a ser salva.
-     * @return O carro salvo.
-     */
     public Carro salvar(Carro carro) {
-        // Lógica de validação básica de negócio
         if (carro.getPlaca() == null || carro.getPlaca().length() != 7) {
              throw new ResponseStatusException(
                 HttpStatus.BAD_REQUEST, 
@@ -29,7 +23,6 @@ public class CarroServices {
             );
         }
         
-        // O status inicial deve ser TRUE (Disponível) se for um novo carro
         if (carro.getIdCarro() == null) {
             carro.setStatus(true);
         }
@@ -37,27 +30,18 @@ public class CarroServices {
         return repositorioCarro.save(carro);
     }
     
-    /**
-     * Busca um carro pelo ID.
-     * @param id O ID do carro.
-     * @return O Optional contendo o carro.
-     */
     public Optional<Carro> buscarPorId(Integer id) {
         return repositorioCarro.findById(id);
     }
 
-    /**
-     * Retorna todos os carros.
-     * @return Uma lista de carros.
-     */
-    public Iterable<Carro> listarTodos() {
+    // ATUALIZADO: Aceita um parâmetro de filtro 'placa'
+    public Iterable<Carro> listarTodos(String placa) {
+        if (placa != null && !placa.isBlank()) {
+            return repositorioCarro.findByPlacaStartsWith(placa);
+        }
         return repositorioCarro.findAll();
     }
 
-    /**
-     * Deleta um carro pelo ID.
-     * @param id O ID do carro a ser deletado.
-     */
     public void deletar(Integer id) {
         if (!repositorioCarro.existsById(id)) {
             throw new ResponseStatusException(
@@ -68,11 +52,6 @@ public class CarroServices {
         repositorioCarro.deleteById(id);
     }
 
-    /**
-     * MÉTODO CORRIGIDO: Este método agora está vazio, permitindo que o Controller
-     * o chame sem lançar uma exceção, enquanto a lógica de salvamento é delegada a 'salvar'.
-     */
     public void adicionarInfCarro(Carro carro) {
-        // Implemente aqui qualquer lógica de pré-validação ou manipulação antes do save, se necessário.
     }
 }

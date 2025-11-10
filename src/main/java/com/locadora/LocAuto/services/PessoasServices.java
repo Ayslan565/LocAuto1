@@ -1,9 +1,9 @@
 package com.locadora.LocAuto.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus; // Importar
+import org.springframework.http.HttpStatus; 
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException; // Importar
+import org.springframework.web.server.ResponseStatusException; 
 
 import com.locadora.LocAuto.Model.Pessoa;
 import com.locadora.LocAuto.repositorio.repositorioPessoa;
@@ -16,7 +16,6 @@ public class PessoasServices {
     
     public Pessoa adicionarInfPessoa(Pessoa pessoa) {
         
-        // CORREÇÃO: Validação para evitar o erro "Entity must not be null"
         if (pessoa == null) {
             throw new ResponseStatusException(
                 HttpStatus.BAD_REQUEST, 
@@ -29,7 +28,11 @@ public class PessoasServices {
         return savedPessoa;
     }
 
-    public Iterable<Pessoa> listarPessoas() {
+    // ATUALIZADO: Aceita um parâmetro de filtro 'cpf'
+    public Iterable<Pessoa> listarPessoas(String cpf) {
+        if (cpf != null && !cpf.isBlank()) {
+            return repositorioPessoa.findByCpfStartsWith(cpf);
+        }
         return repositorioPessoa.findAll();
     }
 }
