@@ -1,23 +1,14 @@
-/*
- * =============================================
- * SCRIPT.JS ATUALIZADO (COM FILTROS, CÁLCULO E PERMISSÕES)
- * =============================================
- */
-
 const mockData = {
     acessos: {
         'S': 'Select (Buscar dados)', 'I': 'Insert (Criar dados)', 'U': 'Update (Atualiza dados)', 'D': 'Delete (Deleta dados)',
-        'CLIENTE': 'S Carro, S Contrato', 'FUNCIONARIO': 'S/I/U Pessoa, S/I/U Cliente, S/I/U Contrato',
-        'GERENTE': 'S/I/U/D Funcionário, S/I/U/D Pessoa, S/I/U/D Cliente, S/I/U/D Contrato, S/I/U/D Carro'
+        'CLIENTE': 'S Carro, S Contrato', 
+        'FUNCIONARIO': 'S/I/U Pessoa, S/I/U Cliente, S/I/U Contrato, S Carro', 
+        'GERENTE': 'S/I/U/D Funcionário, S/I/U/D Pessoa, S/I/U/D Cliente, S/I/U/D Contrato, S/I/U/D Carro, S/I/U/D Acessos' 
     },
 };
 
 let currentUserRole = null;
 let graficoFrota = null;
-
-// ==============================================================================
-// FUNÇÕES GLOBAIS DE CÁLCULO
-// ==============================================================================
 
 window.calcularValorLocacao = () => {
     const inicioStr = document.getElementById('contrato-data-inicio').value;
@@ -34,7 +25,6 @@ window.calcularValorLocacao = () => {
         const dataInicio = new Date(inicioStr);
         const dataFim = new Date(fimStr);
         
-        // Define a hora para evitar problemas de fuso horário que causam diferença de 1 dia
         dataInicio.setHours(0, 0, 0, 0);
         dataFim.setHours(0, 0, 0, 0);
 
@@ -44,7 +34,6 @@ window.calcularValorLocacao = () => {
         }
 
         const diffTime = Math.abs(dataFim.getTime() - dataInicio.getTime());
-        // Adiciona 1 dia (para contar o dia de retirada)
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; 
 
         const valorTotal = diffDays * taxaDiaria;
@@ -55,10 +44,6 @@ window.calcularValorLocacao = () => {
     }
 };
 
-
-// ==============================================================================
-// FUNÇÕES DE BUSCA DE DADOS (FETCH)
-// ==============================================================================
 
 async function loadDashboardData() {
     try {
@@ -125,14 +110,10 @@ async function renderContratosView() {
     }
 }
 
-/**
- * Renderiza a view E a barra de busca.
- */
 async function renderDataView(viewId, entityName, endpoint, filterParamName = null) {
     const view = document.getElementById(viewId);
     const showNewButton = (currentUserRole === 'GERENTE' || currentUserRole === 'FUNCIONARIO');
     
-    // 1. Adiciona o HTML da barra de busca SE um filterParamName foi fornecido
     let searchBarHtml = '';
     if (filterParamName) {
         let placeholder = `Buscar por ${filterParamName}...`;
@@ -171,15 +152,12 @@ async function renderDataView(viewId, entityName, endpoint, filterParamName = nu
         </div>
     `;
 
-    // 2. Adiciona o Event Listener para o botão de busca (se ele existe)
     if (filterParamName) {
         document.getElementById(`${viewId}-search-button`).addEventListener('click', () => {
             const searchTerm = document.getElementById(`${viewId}-search-input`).value;
-            // Chama a função de busca com o termo
-            fetchDataAndRenderTable(viewId, endpoint, filterParamName, searchTerm);
+            renderDataView(viewId, entityName, endpoint, filterParamName, searchTerm);
         });
         
-        // Opcional: Busca ao pressionar "Enter"
         document.getElementById(`${viewId}-search-input`).addEventListener('keyup', (event) => {
             if (event.key === 'Enter') {
                 document.getElementById(`${viewId}-search-button`).click();
@@ -187,13 +165,9 @@ async function renderDataView(viewId, entityName, endpoint, filterParamName = nu
         });
     }
 
-    // 3. Busca os dados (primeira carga, sem filtro)
     fetchDataAndRenderTable(viewId, endpoint, null, null);
 }
 
-/**
- * NOVO: Função separada para buscar os dados e popular a tabela.
- */
 async function fetchDataAndRenderTable(viewId, endpoint, filterParamName, searchTerm) {
     const tableBody = document.querySelector(`#${viewId} .data-table tbody`);
     if (!tableBody) return;
@@ -222,10 +196,6 @@ async function fetchDataAndRenderTable(viewId, endpoint, filterParamName, search
     }
 }
 
-
-// ==============================================================================
-// FUNÇÕES DE RENDERIZAÇÃO DE TABELA (HTML)
-// ==============================================================================
 
 function getTableHeader(entityName) {
     if (entityName === 'Pessoa') {
@@ -322,7 +292,7 @@ function getTableRows(entityName, data) {
                  const isChecked = (statusTxt === 'CONCLUIDO'); 
                  actions = `<input type="checkbox" ${isChecked ? 'checked' : ''} disabled>`;
              } else {
-                 actions = `<span style="color: var(--secondary-color);"><i>${statusTxt}</i></span>`;
+                 actions = `<span style="color: var(--secondary-color);"><i>Visualização</i></span>`;
              }
              
              cells = `
@@ -340,10 +310,6 @@ function getTableRows(entityName, data) {
     });
     return html;
 }
-
-// ==============================================================================
-// INICIALIZAÇÃO E EVENT LISTENERS
-// ==============================================================================
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -427,7 +393,6 @@ document.addEventListener('DOMContentLoaded', () => {
             targetView.classList.add('active');
         }
 
-        // ATUALIZADO: Passa os parâmetros de filtro (cpf e placa)
         if (targetId === 'home-view') {
             loadDashboardData(); 
         } 
@@ -546,6 +511,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 } catch (err) {
                     alert(`Erro ao carregar dados do cliente: ${err.message}`);
                 }
+            } else if (entityKey === 'carros') { 
+                try {
+                    const response = await fetch(`/detalhesCarros/${entityId}`);
+                    if (!response.ok) throw new Error('Carro não encontrado.');
+                    const carro = await response.json();
+                    
+                    document.getElementById('carro-id').value = carro.idCarro; 
+                    document.getElementById('carro-nome').value = carro.nome;
+                    document.getElementById('carro-placa').value = carro.placa;
+                    document.getElementById('carro-ano').value = carro.anoFabricacao;
+                    document.getElementById('carro-cor').value = carro.cor;
+                    document.getElementById('carro-km').value = carro.quilometragem;
+                    
+                    formContainer.classList.remove('hidden');
+                    
+                } catch (err) {
+                    alert(`Erro ao carregar dados do carro: ${err.message}`);
+                }
             } else {
                 console.log(`Simulando carregamento de dados para edição de ID: ${entityId}`);
                 formContainer.classList.remove('hidden');
@@ -560,16 +543,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    /**
-     * NOVO: Carrega os dados (Clientes e Carros) para os dropdowns
-     * do formulário de Contrato.
-     */
     async function loadContratoFormData() {
         const clienteSelect = document.getElementById('contrato-select-cliente');
         const carroSelect = document.getElementById('contrato-select-carro');
         const errorEl = document.getElementById('contrato-form-error');
         
-        // Zera os campos calculados
         document.getElementById('contrato-valor-total').value = '0,00';
         document.getElementById('contrato-data-inicio').value = '';
         document.getElementById('contrato-data-fim').value = '';
@@ -578,14 +556,12 @@ document.addEventListener('DOMContentLoaded', () => {
             clienteSelect.innerHTML = '<option value="">Carregando clientes...</option>';
             carroSelect.innerHTML = '<option value="">Carregando carros...</option>';
             
-            // 1. Buscar Clientes
             const clienteResponse = await fetch('/detalhescliente/listar');
             if (!clienteResponse.ok) throw new Error('Falha ao buscar clientes.');
             const clientes = await clienteResponse.json();
             
             clienteSelect.innerHTML = '<option value="">Selecione um cliente...</option>';
             
-            // PALIATIVO: Usamos item.id_cliente como o ID do Usuário (tb_usuarios.id_usuario)
             clientes.forEach(cliente => {
                 const option = document.createElement('option');
                 option.value = cliente.id_cliente; 
@@ -594,7 +570,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
 
-            // 2. Buscar Carros (Apenas os disponíveis)
             const carroResponse = await fetch('/detalhesCarros/listar');
             if (!carroResponse.ok) throw new Error('Falha ao buscar carros.');
             const carros = await carroResponse.json();
@@ -622,35 +597,67 @@ document.addEventListener('DOMContentLoaded', () => {
         const errorEl = document.getElementById('carro-form-error');
         errorEl.classList.add('hidden');
 
+        const carroId = document.getElementById('carro-id').value; 
+        const isUpdate = !!carroId; 
+
+        let currentStatus = true;
+        if (isUpdate) {
+            try {
+                const response = await fetch(`/detalhesCarros/${carroId}`);
+                if (response.ok) {
+                    const existingCarro = await response.json();
+                    currentStatus = existingCarro.status; 
+                }
+            } catch (error) {
+                console.warn('Falha ao buscar status atual do carro. Assumindo true.', error);
+            }
+        }
+
         const carro = {
-            idCarro: null, 
+            idCarro: isUpdate ? parseInt(carroId, 10) : null, 
             nome: document.getElementById('carro-nome').value,
             placa: document.getElementById('carro-placa').value,
             anoFabricacao: parseInt(document.getElementById('carro-ano').value, 10),
             cor: document.getElementById('carro-cor').value,
             quilometragem: parseFloat(document.getElementById('carro-km').value),
-            status: true
+            status: currentStatus 
         };
+        
+        const method = isUpdate ? 'PUT' : 'POST';
+        const endpoint = isUpdate ? `/detalhesCarros/${carroId}` : '/detalhesCarros/add';
+        const successMessage = isUpdate ? 'Carro atualizado com sucesso!' : 'Carro cadastrado com sucesso!';
 
         try {
-            const response = await fetch('/detalhesCarros/add', {
-                method: 'POST',
+            const response = await fetch(endpoint, {
+                method: method,
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(carro)
             });
 
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || `Erro no servidor (${response.status})`);
+                const errorText = await response.text();
+                let msg = `Erro no servidor (${response.status})`;
+                try {
+                    const errorData = JSON.parse(errorText);
+                    msg = errorData.message || errorData.error || msg;
+                } catch (e) {
+                    const statusMatch = errorText.match(/\[(.*?)\]/);
+                    if (statusMatch && statusMatch[1]) {
+                        msg = statusMatch[1];
+                    } else if (errorText.trim()) {
+                        msg = errorText.trim();
+                    }
+                }
+                throw new Error(msg);
             }
 
-            alert('Carro cadastrado com sucesso!');
+            alert(successMessage);
             hideForm('carros-view');
             changeView('carros-view'); 
 
         } catch (error) {
-            console.error('Falha ao cadastrar carro:', error);
-            errorEl.textContent = `❌ ${error.message}`;
+            console.error(`Falha ao ${isUpdate ? 'atualizar' : 'cadastrar'} carro:`, error);
+            errorEl.textContent = `${error.message}`;
             errorEl.classList.remove('hidden');
         }
     };
@@ -755,7 +762,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // Handler genérico (simulado) para os outros formulários (Pessoa, Gerente)
     document.querySelectorAll('.crud-form:not(#clientes-form):not(#contratos-form)').forEach(form => {
         form.addEventListener('submit', (e) => {
             e.preventDefault();

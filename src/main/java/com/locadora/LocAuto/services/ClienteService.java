@@ -15,6 +15,7 @@ import java.time.LocalDate;
 import java.time.Period;
 import java.time.ZoneId;
 import java.util.Date;
+import java.util.Optional; // ADICIONADO: Necessário para buscarPorId
 
 @Service
 public class ClienteService {
@@ -57,7 +58,7 @@ public class ClienteService {
     @Transactional 
     public Cliente adicionarInfCliente(ClienteCadastroDTO dto) {
         
-        // 0. Pré-validação do Login 
+        // 0. Pré-validação do Login
         if (usuarioService.loginExiste(dto.getLogin())) {
             throw new ResponseStatusException(
                 HttpStatus.BAD_REQUEST, 
@@ -75,7 +76,7 @@ public class ClienteService {
         Cliente clienteSalvo;
         
         try {
-            // 1. Salvar Pessoa 
+            // 1. Salvar Pessoa
             pessoaSalva = pessoasServices.adicionarInfPessoa(pessoa); 
             
             // 2. Salvar Cliente (Garante o registro na tb_cliente)
@@ -111,5 +112,15 @@ public class ClienteService {
 
     public Iterable<Cliente> listarClientes() {
         return repositorioCliente.findAll();
+    }
+    
+    /**
+     * Busca um Cliente pelo ID usando o repositório.
+     * Necessário para o endpoint GET /{id} e para o formulário de edição no frontend.
+     * @param id O ID do Cliente.
+     * @return Um Optional contendo o Cliente, se encontrado.
+     */
+    public Optional<Cliente> buscarPorId(Integer id) {
+        return repositorioCliente.findById(id);
     }
 }

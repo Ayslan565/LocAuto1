@@ -46,8 +46,7 @@ public class ControleCliente {
     public Iterable<Cliente> listarClientes(
         @RequestParam(value = "cpf", required = false) String cpf
     ) {
-        // O Service precisa ser ajustado para receber o CPF, mas por enquanto, ele lista tudo.
-        // O Service deve ser alterado para: clienteService.listarClientes(cpf)
+        // O Service é chamado para listar todos os clientes (o filtro de CPF não está implementado na camada Service).
         return clienteService.listarClientes(); 
     }
 
@@ -57,7 +56,7 @@ public class ControleCliente {
      */
     @GetMapping("/{id}")
     public ResponseEntity<Cliente> buscarClientePorId(@PathVariable Integer id) {
-        return clienteService.buscarPorId(id)
+        return clienteService.buscarPorId(id) 
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
