@@ -1,6 +1,5 @@
 package com.locadora.LocAuto.Model;
 
-
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -20,7 +19,8 @@ public class Cliente {
     private Integer id_cliente; 
     
     @OneToOne(cascade = {CascadeType.MERGE, CascadeType.PERSIST})  
-  @JoinColumn(name = "fk_id_pessoa", referencedColumnName = "Id", nullable = false) 
+    // CORREÇÃO CRÍTICA: Referencia a coluna correta 'id_pessoa' na tabela Pessoa (que foi mapeada explicitamente)
+    @JoinColumn(name = "fk_id_pessoa", referencedColumnName = "id_pessoa", nullable = false) 
     private Pessoa pessoa;
 
     public void setId_cliente(Integer id_cliente) {
@@ -34,8 +34,6 @@ public class Cliente {
         this.pessoa = pessoa;
     }
 
-
-    
     public Integer getId_cliente() {
         return id_cliente;
     }
@@ -49,8 +47,6 @@ public class Cliente {
     }
 
     public void setId(Integer id) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'setId'");
+        this.id_cliente = id;
     }
-
 }

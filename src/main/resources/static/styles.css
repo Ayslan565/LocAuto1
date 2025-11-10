@@ -14,7 +14,7 @@
 
 * {
     box-sizing: border-box;
-    margin: 0; /* Corrigido de '10' para '0' */
+    margin: 0; 
     padding: 0;
     font-family: 'Arial', sans-serif;
 }
@@ -35,20 +35,48 @@ body {
     display: flex;
 }
 
-/* ------------------- TELA DE LOGIN ------------------- */
+/* ------------------- TELA DE LOGIN (LAYOUT DIVIDIDO) ------------------- */
+
+/* 1. A tela principal agora é um flex container (layout de colunas) */
 #login-screen {
-    justify-content: center;
-    align-items: center;
-    background: linear-gradient(135deg, var(--primary-color), #0056b3);
+    flex-direction: row; /* Colunas lado a lado */
+    background: var(--card-bg); /* Fundo branco para a área de login */
 }
 
+/* 2. Nova Coluna da Esquerda (Área de Login) */
+.login-area {
+    width: 40%; /* A área de login ocupa 40% da tela */
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    position: relative; /* Pai para a marca "LOCAUTO" */
+}
+
+/* NOVO: Estilo da Marca "LOCAUTO" no canto */
+.login-brand {
+    position: absolute;
+    top: 40px;
+    left: 120px;
+    font-size: 2em; /* Tamanho grande */
+    font-weight: bold;
+    color: var(--primary-color); /* Cor azul primária */
+    letter-spacing: 1px;
+}
+
+/* 3. Formulário de Login (Agora maior) */
 .login-container {
     background: var(--card-bg);
     padding: 40px;
     border-radius: 8px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-    width: 350px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); 
+    width: 400px; /* Formulário maior */
+    max-width: 100%;
     text-align: center;
+    
+    /* NOVO: Borda cinza claro */
+    border: 1px solid var(--border-color);
 }
 
 .login-container h1 {
@@ -67,7 +95,6 @@ body {
     color: var(--secondary-color);
 }
 
-/* NOVO ESTILO PARA O LINK DE REGISTRO */
 .registration-link {
     margin-top: 15px;
     font-size: 0.9em;
@@ -82,6 +109,78 @@ body {
 .registration-link a:hover {
     text-decoration: underline;
 }
+
+/* 4. Coluna da Direita (Slideshow) */
+.background-slideshow {
+    width: 60%; /* O slideshow ocupa 60% da tela */
+    height: 100%;
+    position: relative; /* Pai para os slides */
+    z-index: 1;
+    overflow: hidden; /* ESSENCIAL: Esconde os slides fora da tela */
+    background: #333; /* Fundo escuro de fallback */
+}
+
+/* --- ATUALIZAÇÃO CARROSSEL (INÍCIO) --- */
+
+/* NOVO: Este é o "trilho" que vai se mover. 
+   O 'width' deve ser (100% * NÚMERO_DE_SLIDES)
+   Ex: 3 slides = 300% 
+*/
+.slide-wrapper {
+    width: 300%; /* Assumindo 3 slides */
+    height: 100%;
+    display: flex;
+    position: relative;
+    
+    /* 15s de duração total (5s por slide) */
+    animation: slide-animation 15s infinite; 
+}
+
+/* ATUALIZADO: Regra do Slide Individual (cada slide ocupa 100% para sair totalmente da tela) */
+.background-slideshow .slide,
+.background-slideshow .slide-wrapper .slide {
+    flex: 0 0 100%;
+    width: 100%;
+    height: 100%;
+    
+    /* preenchimento total da área do slide */
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    
+    /* bordas arredondadas de 15px conforme pedido */
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+/* REMOVIDO: A classe .active não é mais necessária para esta animação */
+/*
+.background-slideshow .slide.active {
+    opacity: 1;
+}
+*/
+
+/* NOVO: Animação de Keyframes para o Carrossel (passos de 0%, -100%, -200%) */
+/* Os percentuais devem ser ajustados se você mudar o número de slides */
+@keyframes slide-animation {
+    /* Slide 1 visível */
+    0%    { transform: translateX(0%); }
+    30%   { transform: translateX(0%); }
+
+    /* Transição para Slide 2 */
+    33.33% { transform: translateX(-100%); }
+    63.33% { transform: translateX(-100%); }
+
+    /* Transição para Slide 3 */
+    66.66% { transform: translateX(-200%); }
+    96.66% { transform: translateX(-200%); }
+
+    /* Volta ao início */
+    100% { transform: translateX(0%); }
+}
+
+/* --- ATUALIZAÇÃO CARROSSEL (FIM) --- */
+
 
 /* ------------------- DASHBOARD PRINCIPAL ------------------- */
 #dashboard-screen {
@@ -112,7 +211,7 @@ body {
 }
 
 .sidebar .nav-section-title {
-    color: #adb5bd; /* Cinza mais claro para título de seção */
+    color: #adb5bd; 
     font-size: 0.8em;
     padding: 10px 20px 5px;
     text-transform: uppercase;
@@ -262,6 +361,29 @@ body {
     font-size: 1em;
 }
 
+/* NOVO: Estilo para ícone de senha (movido para cá) */
+.input-group-with-icon { 
+    position: relative; 
+}
+.password-toggle {
+    position: absolute;
+    right: 10px;
+    top: 50%; /* Ajuste para centralizar com o input */
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #6c757d;
+    font-size: 0.95em;
+    z-index: 10;
+}
+/* Alinha o label e o input no input-group-with-icon */
+.input-group-with-icon input {
+    padding-right: 35px; /* Espaço para o ícone */
+}
+.input-group-with-icon label {
+    text-align: left; /* Garante alinhamento */
+}
+
+
 /* Layout de Formulário CRUD */
 .crud-form {
     display: flex;
@@ -370,7 +492,6 @@ body {
 }
 
 .data-table td:last-child {
-    /* Ajuste para alinhar os botões de ação */
     white-space: nowrap; 
 }
 
@@ -408,7 +529,7 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.5); /* Fundo semi-transparente */
+    background: rgba(0, 0, 0, 0.5); 
     display: flex;
     justify-content: center;
     align-items: center;
@@ -439,6 +560,33 @@ body {
 
 /* Media Query para Mobile/Visualização Menor */
 @media (max-width: 768px) {
+    /* CORREÇÃO: Faz as colunas de login voltarem a ser empilhadas */
+    #login-screen {
+        flex-direction: column;
+    }
+    .login-area {
+        width: 100%;
+        height: auto; 
+    }
+    /* Esconde a marca em ecrãs pequenos */
+    .login-brand {
+        display: none;
+    }
+    .background-slideshow {
+        width: 100%;
+        height: 100%; 
+        position: absolute; 
+        z-index: 1; /* Garante que fique atrás do container */
+    }
+    .login-container {
+        width: 90%; 
+        margin-top: 20vh; 
+        background: rgba(255, 255, 255, 0.95); /* Fundo semi-transparente */
+        z-index: 10; /* Garante que fique à frente do slideshow */
+    }
+    
+
+    /* Estilos do Dashboard */
     #dashboard-screen {
         grid-template-columns: 1fr; 
     }

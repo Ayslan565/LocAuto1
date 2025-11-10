@@ -1,19 +1,19 @@
 package com.locadora.LocAuto.services;
 
+import com.locadora.LocAuto.Model.Usuario;
+import com.locadora.LocAuto.repositorio.repositorioUsuario;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.GrantedAuthority;
-
-import com.locadora.LocAuto.Model.Usuario;
-import com.locadora.LocAuto.repositorio.repositorioUsuario;
+// IMPORTAÇÃO REMOVIDA: org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
-import java.util.Collection;
-
+import java.util.List;
 
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
@@ -21,23 +21,31 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Autowired
     private repositorioUsuario repositorioUsuario;
 
+    // ANOTAÇÃO REMOVIDA: @Transactional
     @Override
-    public UserDetails loadUserByUsername(String login) throws UsernameNotFoundException {
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         
-        Usuario usuario = repositorioUsuario.findByLogin(login)
-                .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado: " + login));
+        Usuario usuario = repositorioUsuario.findByLogin(username)
+                .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado: " + username));
 
-        Collection<? extends GrantedAuthority> authorities = mapRolesToAuthorities(usuario.getGrupo().getNomeGrupo());
+        String nomeGrupo = null;
+        if (usuario.getGrupoUsuario() != null) {
+            nomeGrupo = usuario.getGrupoUsuario().getNomeGrupo();
+        }
 
-        return new org.springframework.security.core.userdetails.User(
-                usuario.getLogin(),
-                usuario.getSenha(),
-                authorities
+        List<GrantedAuthority> authorities = Collections.emptyList();
+        if (nomeGrupo != null && !nomeGrupo.isBlank()) {
+            authorities = Collections.singletonList(
+                    new SimpleGrantedAuthority("ROLE_" + nomeGrupo.toUpperCase())
+            );
+        }
+
+        String senhaHashedDoBanco = usuario.getSenha();
+
+        return new User(
+                usuario.getLogin(),      // Username
+                senhaHashedDoBanco,      // Senha hasheada lida do BD (BCrypt)
+                authorities              // Permissões
         );
-    }
-
-    private Collection<? extends GrantedAuthority> mapRolesToAuthorities(String nomeGrupo) {
-        String roleName = "ROLE_" + nomeGrupo.toUpperCase().replace("USER_", ""); 
-        return Collections.singletonList(new SimpleGrantedAuthority(roleName));
     }
 }

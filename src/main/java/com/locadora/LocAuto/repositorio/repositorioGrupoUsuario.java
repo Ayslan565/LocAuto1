@@ -9,9 +9,7 @@ import com.locadora.LocAuto.Model.GrupoUsuario;
 
 @Repository
 public interface repositorioGrupoUsuario extends JpaRepository<GrupoUsuario,Integer>{
-
-    void save(repositorioGrupoUsuario repositoriogrupousuario);
-
-    Optional<GrupoUsuario> findByNomeGrupo(String nome);
+    // Removida assinatura inválida e corrigido nome do parâmetro.
+    Optional<GrupoUsuario> findByNomeGrupo(String nomeGrupo);
     
 }

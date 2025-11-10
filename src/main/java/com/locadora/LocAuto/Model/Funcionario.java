@@ -1,61 +1,95 @@
 package com.locadora.LocAuto.Model;
+
 import java.util.Date;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-    import jakarta.persistence.Table;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
+
 @Entity
-@Table (name = "tb_funcionario")
-public class Funcionario extends Pessoa {
+@Table(name = "tb_funcionario")
+public class Funcionario {
     
-    private  int id_funcionario;
-    private Date Data_Admissao;
-    private String Cargo;
-    float Salario;
+    // 1. Chave Primária própria da tabela tb_funcionario
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_funcionarios")
+    private Integer idFuncionarios;
+    
+    // 2. Associação OneToOne com Pessoa (Chave Estrangeira)
+    @OneToOne
+    @JoinColumn(name = "fk_id_pessoa", referencedColumnName = "id_pessoa", nullable = false)
+    private Pessoa pessoa;
+    
+    // 3. Campos Específicos do Funcionário (Corrigido para camelCase)
+    @Column(name = "data_admissao", nullable = false)
+    private Date dataAdmissao;
+    
+    @Column(name = "cargo", nullable = false)
+    private String cargo;
+    
+    // Usar Double para evitar erros de precisão com float
+    @Column(name = "salario", nullable = false)
+    private Double salario;
 
-
-
-
-    public int getId_funcionario() {
-        return id_funcionario;
+    // Construtores
+    public Funcionario() {
     }
 
-    public void setId_funcionario(int id_funcionario) {
-        this.id_funcionario = id_funcionario;
+    public Funcionario(Pessoa pessoa, Date dataAdmissao, String cargo, Double salario) {
+        this.pessoa = pessoa;
+        this.dataAdmissao = dataAdmissao;
+        this.cargo = cargo;
+        this.salario = salario;
     }
 
-    public Date getData_Admissao() {
-        return Data_Admissao;
+    // Getters and Setters (Herdado de Pessoa e local)
+    
+    // Getters e Setters da Chave Primária (idFuncionarios)
+    public Integer getIdFuncionarios() {
+        return idFuncionarios;
     }
 
-    public void setData_Admissao(Date data_Admissao) {
-        Data_Admissao = data_Admissao;
+    public void setIdFuncionarios(Integer idFuncionarios) {
+        this.idFuncionarios = idFuncionarios;
+    }
+    
+    // Getters e Setters da Associação (Pessoa)
+    public Pessoa getPessoa() {
+        return pessoa;
+    }
+
+    public void setPessoa(Pessoa pessoa) {
+        this.pessoa = pessoa;
+    }
+
+    // Getters e Setters dos Atributos
+    public Date getDataAdmissao() {
+        return dataAdmissao;
+    }
+
+    public void setDataAdmissao(Date dataAdmissao) {
+        this.dataAdmissao = dataAdmissao;
     }
 
     public String getCargo() {
-        return Cargo;
+        return cargo;
     }
 
     public void setCargo(String cargo) {
-        Cargo = cargo;
+        this.cargo = cargo;
     }
 
-    public float getSalario() {
-        return Salario;
+    public Double getSalario() {
+        return salario;
     }
 
-    public void setSalario(float salario) {
-        Salario = salario;
+    public void setSalario(Double salario) {
+        this.salario = salario;
     }
-
-    public Funcionario(Integer id, String CPF, String nome, Date data_nasc, String cep, String municipio, String uf, String complemento, String Email, String telefone1, String telefone2, String endereco, int id_funcionario, Date data_Admissao, String cargo, float salario) {
-        super(id, CPF, nome, data_nasc, cep, municipio, uf, complemento, Email, telefone1, telefone2, endereco);
-        this.id_funcionario = id_funcionario;
-        Data_Admissao = data_Admissao;
-        Cargo = cargo;
-        Salario = salario;
-    }
-
-    public Funcionario(){
-        
-    }
-};
+}

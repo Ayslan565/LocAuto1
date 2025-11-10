@@ -1,10 +1,12 @@
 package com.locadora.LocAuto.repositorio;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-
 import com.locadora.LocAuto.Model.Cliente;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-public interface repositorioCliente extends JpaRepository <Cliente, Integer>{
-
+@Repository
+public interface repositorioCliente extends JpaRepository<Cliente, Integer> {
+    
+    // O JpaRepository fornece automaticamente os métodos save(), findById(), findAll(), etc.
     
 }

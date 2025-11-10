@@ -1,216 +1,208 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LocAuto | Dashboard Administrativo</title>
-    <link rel="stylesheet" href="styles.css"> 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LocAuto | Dashboard Administrativo</title>
+    <link rel="stylesheet" href="styles.css"> 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 </head>
 <body>
 
-    <div id="login-screen" class="screen active">
-        <div class="login-container">
-            <h1>LocAuto Login</h1>
-            <p>Gerenciamento de Locações</p>
-            <form id="login-form">
-                <div class="input-group">
-                    <label for="username">Usuário (CPF/Email)</label>
-                    <input type="text" id="username" required>
-                </div>
-                <div class="input-group">
-                    <label for="password">Senha</label>
-                    <input type="password" id="password" required>
-                </div>
-                <button type="submit" class="btn primary">Entrar</button>
-                
-                <div class="login-info">
-                    <p>Simulação: Use Usuário: <strong>admin</strong> e Senha: <strong>123</strong></p>
-                </div>
-                
-                <div class="registration-link">
-                    <p>Novo por aqui? <a href="cadastro.html">Cadastre-se agora</a></p>
-                </div>
-                
-            </form>
-        </div>
-    </div>
+    <div id="dashboard-screen" class="screen active" style="display: flex;"> 
+        
+        <aside class="sidebar">
+            <div class="logo">LocAuto Admin</div>
+            <nav>
+                <a href="#" class="nav-item active" data-target="home-view" id="nav-home">
+                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                </a>
+                <div class="nav-section-title" id="nav-section-management">Gerenciamento de Entidades</div>
+                <a href="#" class="nav-item" data-target="pessoas-view" id="nav-pessoas">
+                    <i class="fas fa-users"></i> Pessoas 
+                </a>
+                <a href="#" class="nav-item" data-target="clientes-view" id="nav-clientes">
+                    <i class="fas fa-user-tie"></i> Clientes
+                </a>
+                <a href="#" class="nav-item" data-target="funcionarios-view" id="nav-funcionarios">
+                    <i class="fas fa-id-card"></i> Funcionários
+                </a>
+                <a href="#" class="nav-item" data-target="gerentes-view" id="nav-gerentes">
+                    <i class="fas fa-user-shield"></i> Gerentes
+                </a>
+                <a href="#" class="nav-item" data-target="carros-view" id="nav-carros">
+                    <i class="fas fa-car"></i> Carros
+                </a>
+                <a href="#" class="nav-item" data-target="contratos-view" id="nav-contratos">
+                    <i class="fas fa-file-signature"></i> Contratos 
+                </a>
+                <a href="#" class="nav-item" data-target="acessos-view" id="nav-acessos">
+                    <i class="fas fa-lock"></i> Níveis de Acesso
+                </a>
+            </nav>
+            <div class="user-info">
+                <i class="fas fa-user-circle"></i> <span id="user-info-name">Usuário</span>
+                <button class="btn logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i></button>
+            </div>
+        </aside>
 
-    <div id="dashboard-screen" class="screen">
-        
-        <aside class="sidebar">
-            <div class="logo">LocAuto Admin</div>
-            <nav>
-                <a href="#" class="nav-item active" data-target="home-view">
-                    <i class="fas fa-tachometer-alt"></i> Dashboard
-                </a>
-                <div class="nav-section-title">Gerenciamento de Entidades</div>
-                <a href="#" class="nav-item" data-target="pessoas-view">
-                    <i class="fas fa-users"></i> Pessoas (CRUD)
-                </a>
-                <a href="#" class="nav-item" data-target="clientes-view">
-                    <i class="fas fa-user-tie"></i> **Clientes (CRUD)** </a>
-                <a href="#" class="nav-item" data-target="funcionarios-view">
-                    <i class="fas fa-id-card"></i> **Funcionários (CRUD)**
-                </a>
-                <a href="#" class="nav-item" data-target="carros-view">
-                    <i class="fas fa-car"></i> **Carros (CRUD)**
-                </a>
-                <a href="#" class="nav-item" data-target="contratos-view">
-                    <i class="fas fa-file-signature"></i> Contratos (CRUD)
-                </a>
-                <a href="#" class="nav-item" data-target="acessos-view">
-                    <i class="fas fa-lock"></i> Níveis de Acesso
-                </a>
-            </nav>
-            <div class="user-info">
-                <i class="fas fa-user-circle"></i> <span>Usuário Admin</span>
-                <button class="btn logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i></button>
-            </div>
-        </aside>
+        <main class="content">
+            <header class="header">
+                <h2>Bem-vindo ao Painel de Locação</h2>
+            </header>
 
-        <main class="content">
-            <header class="header">
-                <h2>Bem-vindo ao Painel de Locação</h2>
-            </header>
+            <section id="home-view" class="view active">
+                <h3>Resumo Geral</h3>
+                <div class="kpi-cards">
+                    <div class="card kpi">
+                        <i class="fas fa-car primary-color"></i>
+                        <p>Total de Carros</p>
+                        <span>45</span>
+                    </div>
+                    <div class="card kpi">
+                        <i class="fas fa-file-signature secondary-color"></i>
+                        <p>Contratos Ativos</p>
+                        <span>12</span>
+                    </div>
+                    <div class="card kpi">
+                        <i class="fas fa-users success-color"></i>
+                        <p>Clientes Cadastrados</p>
+                        <span>89</span>
+                    </div>
+                </div>
+            </section>
 
-            <section id="home-view" class="view active">
-                <h3>Resumo Geral</h3>
-                <div class="kpi-cards">
-                    <div class="card kpi">
-                        <i class="fas fa-car primary-color"></i>
-                        <p>Total de Carros</p>
-                        <span>45</span>
-                    </div>
-                    <div class="card kpi">
-                        <i class="fas fa-file-signature secondary-color"></i>
-                        <p>Contratos Ativos</p>
-                        <span>12</span>
-                    </div>
-                    <div class="card kpi">
-                        <i class="fas fa-users success-color"></i>
-                        <p>Clientes Cadastrados</p>
-                        <span>89</span>
-                    </div>
-                </div>
-            </section>
+            <section id="pessoas-view" class="view">
+                <div class="crud-header">
+                    <h3>Gerenciar Pessoas</h3>
+                    <button class="btn primary" onclick="showForm('pessoas-view', 'create')">
+                        <i class="fas fa-plus"></i> Nova Pessoa
+                    </button>
+                </div>
+                <div class="card">
+                    <h4>Lista de Pessoas</h4>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nome</th>
+                                <th>CPF</th>
+                                <th>Email</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="5">A lista de Pessoas será carregada pelo seu `script.js` na função `changeView('pessoas-view')`</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
 
-            <section id="pessoas-view" class="view">
-                <div class="crud-header">
-                    <h3>Gerenciar Pessoas</h3>
-                    <button class="btn primary" onclick="showForm('pessoas-view', 'create')">
-                        <i class="fas fa-plus"></i> Nova Pessoa
-                    </button>
-                </div>
-                <div class="card">
-                    <h4>Lista de Pessoas</h4>
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Nome</th>
-                                <th>CPF</th>
-                                <th>Email</th>
-                                <th>Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td colspan="5">A lista de Pessoas será carregada pelo seu `script.js` na função `changeView('pessoas-view')`</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </section>
+            <section id="clientes-view" class="view"></section>
+            <section id="funcionarios-view" class="view"></section>
+            <section id="carros-view" class="view"></section>
+            
+            <section id="contratos-view" class="view">
+                <div class="crud-header">
+                    <h3>Gerenciar Contratos</h3>
+                    <button class="btn primary" onclick="showForm('contratos-view', 'create')">
+                        <i class="fas fa-plus"></i> Novo Contrato
+                    </button>
+                </div>
+                <div class="card">
+                    <h4>Contratos em Andamento</h4>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID Contrato</th>
+                                <th>Cliente</th>
+                                <th>Carro</th>
+                                <th>Início</th>
+                                <th>Fim Prev.</th>
+                                <th>Valor Total</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td colspan="7">A lista de Contratos será carregada pelo seu `script.js`</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+            
+            <section id="acessos-view" class="view">
+                <h3>Distribuição de Níveis de Acesso</h3>
+                <div class="card" id="acessos-container">
+                    <p>Carregando dados de acesso...</p>
+                </div>
+            </section>
+            
+            <section id="gerentes-view" class="view"></section>
+            
+        </main>
+        
+        <div id="pessoas-form-container" class="form-overlay hidden">
+            <div class="form-modal">
+                <h4><span id="pessoas-form-title">Cadastrar</span> Pessoa</h4>
+                <form id="pessoas-form" class="crud-form">
+                    <div class="form-row">
+                        <div class="input-group">
+                            <label>Nome Completo</label>
+                            <input type="text" name="nome" required>
+                        </div>
+                        <div class="input-group">
+                            <label>CPF (11 dígitos)</label>
+                            <input type="text" name="cpf" maxlength="11" required>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn primary">Salvar</button>
+                        <button type="button" class="btn secondary" onclick="hideForm('pessoas-view')">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <div id="carros-form-container" class="form-overlay hidden">
+            <div class="form-modal">
+                <h4><span id="carros-form-title">Cadastrar</span> Carro</h4>
+                <form id="carros-form" class="crud-form">
+                    <div class="form-actions">
+                        <button type="submit" class="btn primary">Salvar</button>
+                        <button type="button" class="btn secondary" onclick="hideForm('carros-view')">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <div id="contratos-form-container" class="form-overlay hidden">
+            <div class="form-modal">
+                <h4><span id="contratos-form-title">Abrir</span> Contrato</h4>
+                <form id="contratos-form" class="crud-form">
+                    <div class="form-actions">
+                      M <button type="submit" class="btn primary">Salvar Contrato</button>
+                        <button type="button" class="btn secondary" onclick="hideForm('contratos-view')">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <div id="gerentes-form-container" class="form-overlay hidden">
+            <div class="form-modal">
+                <h4><span id="gerentes-form-title">Cadastrar</span> Gerente</h4>
+                <form id="gerentes-form" class="crud-form">
+                     <div class="form-actions">
+                        <button type="submit" class="btn primary">Salvar</button>
+                        <button type="button" class="btn secondary" onclick="hideForm('gerentes-view')">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
 
-            <section id="clientes-view" class="view"></section>
-            <section id="funcionarios-view" class="view"></section>
-            <section id="carros-view" class="view"></section>
-            
-            <section id="contratos-view" class="view">
-                <div class="crud-header">
-                    <h3>Gerenciar Contratos</h3>
-                    <button class="btn primary" onclick="showForm('contratos-view', 'create')">
-                        <i class="fas fa-plus"></i> Novo Contrato
-                    </button>
-                </div>
-                <div class="card">
-                    <h4>Contratos em Andamento</h4>
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>ID Contrato</th>
-                                <th>Cliente</th>
-                                <th>Carro</th>
-                                <th>Início</th>
-                                <th>Fim Prev.</th>
-                                <th>Valor Total</th>
-                                <th>Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr><td colspan="7">A lista de Contratos será carregada pelo seu `script.js`</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </section>
-            
-            <section id="acessos-view" class="view">
-                <h3>Distribuição de Níveis de Acesso</h3>
-                <div class="card" id="acessos-container">
-                    <p>Carregando dados de acesso...</p>
-                </div>
-            </section>
-            </main>
-        
-        <div id="pessoas-form-container" class="form-overlay hidden">
-            <div class="form-modal">
-                <h4><span id="pessoas-form-title">Cadastrar</span> Pessoa</h4>
-                <form id="pessoas-form" class="crud-form">
-                    <div class="form-row">
-                        <div class="input-group">
-                            <label>Nome Completo</label>
-                            <input type="text" name="nome" required>
-                        </div>
-                        <div class="input-group">
-                            <label>CPF (11 dígitos)</label>
-                            <input type="text" name="cpf" maxlength="11" required>
-                        </div>
-                    </div>
-                    <div class="form-actions">
-                        <button type="submit" class="btn primary">Salvar</button>
-                        <button type="button" class="btn secondary" onclick="hideForm('pessoas-view')">Cancelar</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-        
-        <div id="carros-form-container" class="form-overlay hidden">
-            <div class="form-modal">
-                <h4><span id="carros-form-title">Cadastrar</span> Carro</h4>
-                <form id="carros-form" class="crud-form">
-                    <div class="form-actions">
-                        <button type="submit" class="btn primary">Salvar</button>
-                        <button type="button" class="btn secondary" onclick="hideForm('carros-view')">Cancelar</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-        
-        <div id="contratos-form-container" class="form-overlay hidden">
-            <div class="form-modal">
-                <h4><span id="contratos-form-title">Abrir</span> Contrato</h4>
-                <form id="contratos-form" class="crud-form">
-                    <div class="form-actions">
-                        <button type="submit" class="btn primary">Salvar Contrato</button>
-                        <button type="button" class="btn secondary" onclick="hideForm('contratos-view')">Cancelar</button>
-                    </div>
-                </form>
-            </div>
-        </div>
+    </div>
 
-    </div>
-
-    <script src="script.js"></script> 
+    <script src="script.js"></script> 
 </body>
 </html>
