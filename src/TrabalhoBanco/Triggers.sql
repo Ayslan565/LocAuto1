@@ -1,5 +1,5 @@
 -- 2 º na hr de criar bd
-DELIMITER $$
+/*DELIMITER $$
 CREATE TRIGGER trg_pessoa_auto_id
 BEFORE INSERT ON tb_pessoa
 FOR EACH ROW
@@ -51,7 +51,7 @@ FOR EACH ROW
 BEGIN
     SET NEW.id_funcionarios = (SELECT IFNULL(MAX(id_funcionarios), 0) + 1 FROM tb_funcionario);
 END$$
-DELIMITER ;
+DELIMITER ;*/
 
 
 DELIMITER $$
