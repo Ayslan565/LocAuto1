@@ -116,25 +116,70 @@ body {
     height: 100%;
     position: relative; /* Pai para os slides */
     z-index: 1;
-    overflow: hidden;
+    overflow: hidden; /* ESSENCIAL: Esconde os slides fora da tela */
     background: #333; /* Fundo escuro de fallback */
 }
 
-.background-slideshow .slide {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
+/* --- ATUALIZAÇÃO CARROSSEL (INÍCIO) --- */
+
+/* NOVO: Este é o "trilho" que vai se mover. 
+   O 'width' deve ser (100% * NÚMERO_DE_SLIDES)
+   Ex: 3 slides = 300% 
+*/
+.slide-wrapper {
+    width: 300%; /* Assumindo 3 slides */
     height: 100%;
-    background-size: cover;
-    background-position: center;
-    opacity: 0;
-    transition: opacity 1.5s ease-in-out;
+    display: flex;
+    position: relative;
+    
+    /* 15s de duração total (5s por slide) */
+    animation: slide-animation 15s infinite; 
 }
 
+/* ATUALIZADO: Regra do Slide Individual (cada slide ocupa 100% para sair totalmente da tela) */
+.background-slideshow .slide,
+.background-slideshow .slide-wrapper .slide {
+    flex: 0 0 100%;
+    width: 100%;
+    height: 100%;
+    
+    /* preenchimento total da área do slide */
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    
+    /* bordas arredondadas de 15px conforme pedido */
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+/* REMOVIDO: A classe .active não é mais necessária para esta animação */
+/*
 .background-slideshow .slide.active {
     opacity: 1;
 }
+*/
+
+/* NOVO: Animação de Keyframes para o Carrossel (passos de 0%, -100%, -200%) */
+/* Os percentuais devem ser ajustados se você mudar o número de slides */
+@keyframes slide-animation {
+    /* Slide 1 visível */
+    0%    { transform: translateX(0%); }
+    30%   { transform: translateX(0%); }
+
+    /* Transição para Slide 2 */
+    33.33% { transform: translateX(-100%); }
+    63.33% { transform: translateX(-100%); }
+
+    /* Transição para Slide 3 */
+    66.66% { transform: translateX(-200%); }
+    96.66% { transform: translateX(-200%); }
+
+    /* Volta ao início */
+    100% { transform: translateX(0%); }
+}
+
+/* --- ATUALIZAÇÃO CARROSSEL (FIM) --- */
 
 
 /* ------------------- DASHBOARD PRINCIPAL ------------------- */

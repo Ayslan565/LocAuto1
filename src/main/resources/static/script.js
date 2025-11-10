@@ -1,8 +1,4 @@
-// script.js - Lógica Integrada de Navegação, CRUD Simulado e Renderização Dinâmica
-
-// --- Dados de Simulação (Mock Data) ---
 const mockData = {
-    // Adicionado campo 'role' em Pessoas para simular o perfil de herança
     pessoas: [
         { id: 1, nome: "João Silva", cpf: "123.456.789-00", email: "joao@mail.com", role: "CLIENTE" },
         { id: 10, nome: "Fábio Mendes", cpf: "333.333.333-33", email: "fabio@locauto.com", role: "FUNCIONARIO" },
@@ -39,7 +35,74 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.querySelectorAll('.form-overlay').forEach(el => el.classList.add('hidden'));
 
-    // ------------------- NAVEGAÇÃO SPA -------------------
+    async function setupDynamicMenu() {
+        try {
+            const response = await fetch('/api/credenciais/perfil');
+            
+            if (!response.ok) {
+                throw new Error('Não autenticado');
+            }
+
+            const roles = await response.json();
+            
+            if (roles.length === 0) {
+                throw new Error('Perfil não encontrado');
+            }
+
+            const role = roles[0]; 
+
+            const navSectionMgmt = document.getElementById('nav-section-management');
+            const navPessoas = document.getElementById('nav-pessoas');
+            const navClientes = document.getElementById('nav-clientes');
+            const navFuncionarios = document.getElementById('nav-funcionarios');
+            const navGerentes = document.getElementById('nav-gerentes'); 
+            const navCarros = document.getElementById('nav-carros');
+            const navContratos = document.getElementById('nav-contratos');
+            const navAcessos = document.getElementById('nav-acessos');
+            const userInfoName = document.getElementById('user-info-name');
+
+            if (navSectionMgmt) navSectionMgmt.style.display = 'none';
+            if (navPessoas) navPessoas.style.display = 'none';
+            if (navClientes) navClientes.style.display = 'none';
+            if (navFuncionarios) navFuncionarios.style.display = 'none';
+            if (navGerentes) navGerentes.style.display = 'none'; 
+            if (navCarros) navCarros.style.display = 'none';
+            if (navContratos) navContratos.style.display = 'none';
+            if (navAcessos) navAcessos.style.display = 'none';
+
+            if (userInfoName) userInfoName.textContent = role;
+
+            if (role === 'CLIENTE') {
+                navSectionMgmt.style.display = 'block';
+                navCarros.style.display = 'flex';
+                navContratos.style.display = 'flex';
+            } 
+            else if (role === 'FUNCIONARIO') {
+                navSectionMgmt.style.display = 'block';
+                navPessoas.style.display = 'flex';
+                navCarros.style.display = 'flex';
+                navClientes.style.display = 'flex';
+                navContratos.style.display = 'flex';
+            } 
+            else if (role === 'GERENTE') {
+                navSectionMgmt.style.display = 'block';
+                navPessoas.style.display = 'flex';
+                navClientes.style.display = 'flex';
+                navFuncionarios.style.display = 'flex';
+                navGerentes.style.display = 'flex'; 
+                navCarros.style.display = 'flex';
+                navContratos.style.display = 'flex';
+                navAcessos.style.display = 'flex';
+            }
+
+        } catch (error) {
+            console.error('Falha ao configurar menu dinâmico:', error);
+            window.location.href = '/login.html';
+        }
+    }
+
+    setupDynamicMenu();
+
     const navItems = document.querySelectorAll('.nav-item');
     
     window.changeView = (targetId) => {
@@ -75,8 +138,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
     
-    // ------------------- RENDERIZAÇÃO DINÂMICA (Funções de Suporte) -------------------
-
     window.renderAcessosView = () => {
         const container = document.getElementById('acessos-container');
         if (!container) return;
@@ -112,7 +173,6 @@ document.addEventListener('DOMContentLoaded', () => {
         container.innerHTML = html;
     }
     
-    // Função que renderiza as tabelas (Gerenciar Pessoas, Carros, etc.)
     function renderDataView(viewId, data, entityName) {
         const entityKey = viewId.replace('-view', ''); 
         const view = document.getElementById(viewId);
@@ -139,7 +199,6 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
     }
 
-    // Retorna o cabeçalho da tabela baseado na entidade
     function getTableHeader(entityName) {
         if (entityName === 'Pessoa') {
             return `<tr><th>ID</th><th>Nome</th><th>CPF</th><th>Email</th><th>Perfil</th><th>Ações</th></tr>`;
@@ -155,7 +214,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return '';
     }
 
-    // Retorna as linhas da tabela
     function getTableRows(entityName, data) {
         if (!data || data.length === 0) return '<tr><td colspan="6" style="text-align:center;">Nenhum registro encontrado.</td></tr>';
         
@@ -184,8 +242,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return html;
     }
 
-
-    // ------------------- SIMULAÇÃO DE CRUD (MODAIS) --- 
 
     window.showForm = (viewId, mode, entityId = null) => {
         const formContainer = document.getElementById(`${viewId.replace('-view', '')}-form-container`);
@@ -216,7 +272,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // Submissão do formulário (Simulação de CREATE/UPDATE)
     document.querySelectorAll('.crud-form').forEach(form => {
         form.addEventListener('submit', (e) => {
             e.preventDefault();
@@ -228,23 +283,19 @@ document.addEventListener('DOMContentLoaded', () => {
             alert(`Simulação de ${action} de ${entityKey.toUpperCase()}:\nDados enviados com sucesso! (ID: 999)`);
             
             hideForm(viewId);
-            changeView(viewId); // Atualiza a lista após a submissão simulada
+            changeView(viewId); 
         });
     });
 
-    // Simulação de DELETE
     window.confirmDelete = (entityId, entityName) => {
         if (confirm(`Tem certeza que deseja remover o(a) ${entityName} ID ${entityId}? (Simulação de DELETE)`)) {
             alert(`Simulação de remoção: ${entityName} ID ${entityId} removido.`);
         }
     };
     
-    // ------------------- LOGOUT -------------------
     window.logout = () => {
         if (confirm("Deseja realmente sair do sistema?")) {
-            // Chamada real de logout do Spring Security
              window.location.href = '/logout'; 
         }
     };
-    // ------------------- FIM DO JS -------------------
 });

@@ -61,7 +61,7 @@ public class FuncionarioService {
         
         String login = dto.getLogin();
         String senhaPura = dto.getSenhaPura();
-        String nomeGrupo = dto.getTipoCadastro();
+        String nomeGrupo = dto.getTipoCadastro(); // "FUNCIONARIO" ou "GERENTE"
         Pessoa pessoa = dto.getPessoa(); 
         
         // 0. Pré-validação do Login 

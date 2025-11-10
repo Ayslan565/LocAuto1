@@ -1,54 +1,58 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LocAuto | Login</title>
-    <link rel="stylesheet" href="styles.css"> 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"> 
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LocAuto | Login</title>
+    <link rel="stylesheet" href="styles.css"> 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"> 
 </head>
 <body>
 
-    <div id="login-screen" class="screen active">
+    <div id="login-screen" class="screen active">
 
-        <div class="login-area">
-            
-            <div class="login-brand">LOCAUTO</div>
+        <div class="login-area">
+            
+            <div class="login-brand">LOCAUTO</div>
 
-            <div class="login-container">
-                
-                <h1>Login</h1>
-                <p>Gerenciamento de Locações</p>
-                
-                <p id="login-error-message" class="hidden" style="color: var(--danger-color); font-weight: bold; margin-bottom: 10px;"></p>
-                
-                <form id="login-form"> 
-                    <div class="input-group">
-                        <label for="username">Usuário (E-mail)</label>
-                        <input type="text" id="username" name="username" required>
-                    </div>
-                    
-                    <div class="input-group input-group-with-icon">
-                        <label for="password">Senha</label>
-                        <input type="password" id="password" name="password" required>
-                        <i class="fas fa-eye password-toggle" data-target="password" onclick="togglePasswordVisibility(this)"></i>
-                    </div>
-                    
-                    <button type="submit" class="btn primary">Entrar</button>
-                    
-                    <div class="registration-link">
-                        <p>Novo por aqui? <a href="cadastro.html" id="register-link">Cadastre-se agora</a></p>
-                    </div>
-                </form>
+            <div class="login-container">
+                
+                <h1>Login</h1>
+                <p>Gerenciamento de Locações</p>
+                
+                <p id="login-error-message" class="hidden" style="color: var(--danger-color); font-weight: bold; margin-bottom: 10px;"></p>
+                
+                <form id="login-form"> 
+                    <div class="input-group">
+                        <label for="username">Usuário (E-mail)</label>
+                        <input type="text" id="username" name="username" required>
+                    </div>
+                    
+                    <div class="input-group input-group-with-icon">
+                        <label for="password">Senha</label>
+                        <input type="password" id="password" name="password" required>
+                        <i class="fas fa-eye password-toggle" data-target="password" onclick="togglePasswordVisibility(this)"></i>
+                    </div>
+                    
+                    <button type="submit" class="btn primary">Entrar</button>
+                    
+                    <div class="registration-link">
+                        <p>Novo por aqui? <a href="cadastro.html" id="register-link">Cadastre-se agora</a></p>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+                <div class="background-slideshow">
+            <div class="slide-wrapper">
+                            <div class="slide" style="background-image: url('images/image1.png');"></div>
+                <div class="slide" style="background-image: url('images/image2.png');"></div>
+                <div class="slide" style="background-image: url('images/image3.png');"></div>
             </div>
-        </div>
+        </div>
 
-        <div class="background-slideshow">
-            <div class="slide active" style="background-image: url('images/fundo_login.png');"></div>
-             </div>
-
-    </div>
-    
-    <script src="login-script.js"></script> 
+    </div>
+    
+    <script src="login-script.js"></script> 
 </body>
 </html>

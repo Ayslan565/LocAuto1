@@ -99,8 +99,6 @@ public class ClienteService {
         }
         
         // 3. Criar o Usuário (Login, Senha Criptografada e Perfil)
-        // NOTA: Removido o try-catch anterior. Se a criação do Usuário falhar, 
-        // a transação principal (iniciada aqui) fará o ROLLBACK de Pessoa e Cliente também.
         usuarioService.criarUsuarioComAcesso(
             dto.getLogin(), 
             dto.getSenhaPura(), 

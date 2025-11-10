@@ -1,6 +1,7 @@
 package com.locadora.LocAuto.Model;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType; // <-- IMPORTAÇÃO ADICIONADA
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -16,7 +17,7 @@ import java.math.BigDecimal;
 public class Contrato {
     
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // RESTAURADO para AUTO_INCREMENT (estabilidade)
+    @GeneratedValue(strategy = GenerationType.IDENTITY) 
     @Column(name = "id_contrato")
     private Integer idContrato; // Corrigido para camelCase
 
@@ -31,18 +32,19 @@ public class Contrato {
 
     // --- Relações FK conforme script SQL ---
     
-    // Liga a FK fk_id_funcionario à PK id_funcionarios
-    @ManyToOne
+    // CORREÇÃO: Adicionado FetchType.LAZY para evitar que o Hibernate
+    // tente carregar o Funcionario (o que o user_cliente não pode fazer).
+    @ManyToOne(fetch = FetchType.LAZY) 
     @JoinColumn(name = "fk_id_funcionario", referencedColumnName = "id_funcionarios")
     private Funcionario funcionario;
     
-    @ManyToOne
+    // CORREÇÃO: Adicionado FetchType.LAZY
+    @ManyToOne(fetch = FetchType.LAZY) 
     @JoinColumn(name = "fk_id_carro", referencedColumnName = "id_carro")
     private Carro carro;
     
-    // O contrato é ligado ao Cliente (ou ao Usuario que representa o Cliente)
-    // Usaremos a FK do Contrato para a tabela Usuarios para ser mais preciso com seu BD:
-    @ManyToOne
+    // CORREÇÃO: Adicionado FetchType.LAZY
+    @ManyToOne(fetch = FetchType.LAZY) 
     @JoinColumn(name = "fk_id_usuario_cliente", referencedColumnName = "id_usuario")
     private Usuario usuarioCliente;
 

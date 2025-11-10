@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.AuthenticationProvider; // Importação CRÍTICA
+import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -23,6 +23,14 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+// --- NOVAS IMPORTAÇÕES NECESSÁRIAS ---
+import org.springframework.security.web.context.DelegatingSecurityContextRepository;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.security.web.context.RequestAttributeSecurityContextRepository;
+import org.springframework.security.web.context.SecurityContextRepository; 
+// --- FIM DAS NOVAS IMPORTAÇÕES ---
+
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -87,7 +95,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, AuthenticationManager authenticationManager) throws Exception {
 
-        // 1. Cria e configura o filtro customizado para JSON
+        // 1. Cria o filtro customizado para JSON
         UsernamePasswordAuthenticationFilter jsonAuthFilter = new UsernamePasswordAuthenticationFilter(authenticationManager) {
             private final ObjectMapper mapper = new ObjectMapper();
             @Override
@@ -108,18 +116,16 @@ public class SecurityConfig {
             }
         };
 
-        // Configura o filtro JSON
+        // 2. Configura o filtro (URLs e Handlers)
         jsonAuthFilter.setFilterProcessesUrl("/api/credenciais/login");
         jsonAuthFilter.setAuthenticationFailureHandler(jsonFailureHandler()); 
         jsonAuthFilter.setAuthenticationSuccessHandler(jsonSuccessHandler());
-        
-        // 2. Desativa CSRF
+
+        // 3. Configura o HttpSecurity
         http.csrf(AbstractHttpConfigurer::disable);
-
-        // 3. Adiciona o filtro customizado na posição correta
-        http.addFilterAt(jsonAuthFilter, UsernamePasswordAuthenticationFilter.class);
-
-        // 4. Configura a Autorização de Requisições HTTP
+        
+        http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED));
+        
         http.authorizeHttpRequests(auth -> auth
             // Libera a URL de Login, Cadastro e Estáticos
             .requestMatchers(
@@ -127,12 +133,12 @@ public class SecurityConfig {
                 "/login.html", 
                 "/cadastro.html", 
                 "/login-script.js", 
-                "/cadastro.js", 
+                "/cadastro.js",
                 "/styles.css",
                 "/favicon.ico", 
-                "/index.html",  // <-- ADICIONAR
+                "/index.html", 
                 "/script.js",
-                "/images/",
+                "/images/**",
                 "/api/public/**"
             ).permitAll()
             
@@ -140,7 +146,7 @@ public class SecurityConfig {
             .requestMatchers(
                 HttpMethod.POST, 
                 "/detalhescliente/add", 
-                "/detalhesfuncionario/add",
+                "/detalhesfuncionario/add", 
                 "/api/credenciais/login"
             ).permitAll()
 
@@ -151,25 +157,42 @@ public class SecurityConfig {
             .anyRequest().authenticated()
         );
 
-        // 5. Configura Exceções (Para o caso de tentar acessar recurso protegido sem logar)
         http.exceptionHandling(exceptions -> exceptions
             .authenticationEntryPoint((request, response, authException) -> {
-                // Este é o 401 que você estava vendo no console (acesso a recurso protegido)
                 response.setStatus(401);
                 response.setContentType("application/json");
                 response.getWriter().write("{\"error\":\"Não autorizado\",\"message\":\"Acesso negado. Você precisa se autenticar para acessar este recurso.\"}");
             })
         );
         
-        // 6. Configura Sessão como STATELESS
-        http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+        http.logout(logout -> logout
+            .logoutUrl("/logout") 
+            .logoutSuccessUrl("/login.html?logout=true") 
+            .invalidateHttpSession(true) 
+            .deleteCookies("JSESSIONID") 
+        );
 
-        // 7. Retorna a cadeia de filtros construída
+        // 4. --- CORREÇÃO DEFINITIVA DO "PISCA E EXPULSA" ---
+        // Nós precisamos criar manualmente o repositório de sessão
+        // (que o Spring usa por padrão) e entregá-lo ao nosso filtro customizado.
+        SecurityContextRepository repo = new DelegatingSecurityContextRepository(
+            new HttpSessionSecurityContextRepository(),
+            new RequestAttributeSecurityContextRepository()
+        );
+        jsonAuthFilter.setSecurityContextRepository(repo);
+        // --- FIM DA CORREÇÃO ---
+
+        // 5. Adiciona o filtro customizado na posição correta
+        http.addFilterAt(jsonAuthFilter, UsernamePasswordAuthenticationFilter.class);
+
+        // 6. Retorna a cadeia de filtros construída
         return http.build();
     }
 
     /**
      * Define o Provedor de Autenticação.
+     * (Retornamos com este Bean pois ele é necessário para o AuthenticationManager
+     * encontrar o userDetailsService e o passwordEncoder).
      */
     @Bean
     public AuthenticationProvider authenticationProvider() {
