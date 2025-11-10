@@ -11,4 +11,4 @@ public interface repositorioFuncionario extends JpaRepository<Funcionario, Integ
     
     // Corrige o erro de compilação no ContratoService.salvar()
     Optional<Funcionario> findByPessoa(Pessoa pessoa);
-}r
+}

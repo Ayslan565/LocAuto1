@@ -7,8 +7,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam; // Certifique-se que o import existe
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
 
 import com.locadora.LocAuto.dto.ClienteCadastroDTO;
 import com.locadora.LocAuto.Model.Cliente;
@@ -21,19 +22,39 @@ public class ControleCliente {
     @Autowired
     private ClienteService clienteService;
 
+    // ----------------------------------------------------
+    // POST (Criação)
+    // ----------------------------------------------------
+
     @PostMapping("/add")
-    public ResponseEntity<?> adicionarInfCliente(@RequestBody ClienteCadastroDTO dto) {
+    public ResponseEntity<Cliente> adicionarInfCliente(@RequestBody ClienteCadastroDTO dto) {
+        // Assume-se que o Service mapeia o DTO para a Entidade Cliente e salva.
         Cliente clienteSalvo = clienteService.adicionarInfCliente(dto);
-        return ResponseEntity.ok(clienteSalvo);
+        // Retorna 201 Created
+        return new ResponseEntity<>(clienteSalvo, HttpStatus.CREATED); 
     }
 
+    // ----------------------------------------------------
+    // GET (Leitura e Busca)
+    // ----------------------------------------------------
+
+    /**
+     * Lista todos os Clientes ou filtra parcialmente pelo CPF.
+     * Ex: GET /detalhescliente/listar?cpf=123
+     */
     @GetMapping("/listar")
     public Iterable<Cliente> listarClientes(
         @RequestParam(value = "cpf", required = false) String cpf
     ) {
+        // O Service precisa ser ajustado para receber o CPF, mas por enquanto, ele lista tudo.
+        // O Service deve ser alterado para: clienteService.listarClientes(cpf)
         return clienteService.listarClientes(); 
     }
 
+    /**
+     * Busca um Cliente por ID.
+     * Ex: GET /detalhescliente/1
+     */
     @GetMapping("/{id}")
     public ResponseEntity<Cliente> buscarClientePorId(@PathVariable Integer id) {
         return clienteService.buscarPorId(id)

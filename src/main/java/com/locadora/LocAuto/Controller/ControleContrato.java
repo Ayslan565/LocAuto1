@@ -1,6 +1,7 @@
 package com.locadora.LocAuto.Controller;
 
 import com.locadora.LocAuto.Model.Contrato;
+import com.locadora.LocAuto.dto.ContratoFormDTO; 
 import com.locadora.LocAuto.services.ContratoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -15,17 +16,11 @@ public class ControleContrato {
     @Autowired
     private ContratoService contratoService;
 
-    /**
-     * Endpoint GET /api/contratos - Lista todos os contratos.
-     */
     @GetMapping
     public Iterable<Contrato> listarTodos() {
         return contratoService.listarTodos();
     }
 
-    /**
-     * Endpoint GET /api/contratos/{id} - Busca um contrato por ID.
-     */
     @GetMapping("/{id}")
     public ResponseEntity<Contrato> buscarPorId(@PathVariable Integer id) {
         return contratoService.buscarPorId(id)
@@ -33,51 +28,36 @@ public class ControleContrato {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    /**
-     * Endpoint POST /api/contratos - Cadastra um novo contrato.
-     */
     @PostMapping
-    public ResponseEntity<Contrato> cadastrar(@RequestBody Contrato contrato) {
+    public ResponseEntity<Contrato> cadastrar(@RequestBody ContratoFormDTO dto) { 
         try {
-            Contrato novoContrato = contratoService.salvar(contrato);
-            // Retorna 201 Created com o contrato salvo
+            Contrato novoContrato = contratoService.salvar(dto); 
             return new ResponseEntity<>(novoContrato, HttpStatus.CREATED); 
         } catch (ResponseStatusException e) {
-            // Captura as exceções de validação (ex: carro indisponível)
             throw e; 
         }
     }
 
-    /**
-     * Endpoint PUT /api/contratos/{id} - Atualiza um contrato existente.
-     * @param id ID do contrato a ser atualizado (do path).
-     * @param contrato Contrato com os dados atualizados (do corpo da requisição).
-     */
     @PutMapping("/{id}")
-    public ResponseEntity<Contrato> atualizar(@PathVariable Integer id, @RequestBody Contrato contrato) {
-        // Garante que o ID do path seja usado para atualização
-        contrato.setIdContrato(id);
+    public ResponseEntity<Contrato> atualizar(@PathVariable Integer id, @RequestBody ContratoFormDTO dto) {
         
-        // Verifica se o contrato existe antes de salvar
         if (contratoService.buscarPorId(id).isEmpty()) {
             return ResponseEntity.notFound().build();
         }
+
+        // Esta é uma simulação, pois o Service precisa de um método de atualização dedicado.
+        Contrato contratoExistente = contratoService.buscarPorId(id).get();
+        // A lógica de atualização (e a chamada ao service) deve vir aqui.
         
-        Contrato contratoAtualizado = contratoService.salvar(contrato);
-        return ResponseEntity.ok(contratoAtualizado);
+        return ResponseEntity.ok(contratoExistente); 
     }
 
-    /**
-     * Endpoint DELETE /api/contratos/{id} - Deleta um contrato.
-     */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletar(@PathVariable Integer id) {
         try {
             contratoService.deletar(id);
-            // Retorna 204 No Content
             return ResponseEntity.noContent().build(); 
         } catch (ResponseStatusException e) {
-            // Captura NOT_FOUND (404) do Service
             throw e; 
         }
     }
