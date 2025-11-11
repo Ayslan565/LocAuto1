@@ -91,14 +91,17 @@ input:focus, textarea:focus {
 
 /* Ícone de Senha */
 .input-group-with-icon {
+    display: flex;
+    flex-direction:row;
+    align-content: center;
+    text-align: center;
+    justify-content: center;
     position: relative;
-    margin-bottom: 15px;
+
 }
 
 .password-toggle {
     position: absolute;
-    right: 10px;
-    top: 38px; /* Ajustado para alinhar com o input, considerando o label acima */
     cursor: pointer;
     color: #6c757d;
     font-size: 0.95em;

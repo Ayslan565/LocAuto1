@@ -126,33 +126,5 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
     
-    // --------------------------------------------------
-    // LÓGICA DO SLIDESHOW DE FUNDO REMOVIDA
-    // --------------------------------------------------
-    // A animação do carrossel agora é controlada 
-    // puramente pelo styles.css (animação slide-animation).
-    /*
-    const slides = document.querySelectorAll('.background-slideshow .slide');
-    let currentSlide = 0;
-    const slideInterval = 5000; // Tempo em milissegundos (5 segundos)
-
-    function nextSlide() {
-        if (slides.length === 0) return; // Não faz nada se não houver slides
-
-        // Remove a classe 'active' do slide atual
-        slides[currentSlide].classList.remove('active');
-        
-        // Calcula o próximo slide
-        currentSlide = (currentSlide + 1) % slides.length;
-        
-        // Adiciona a classe 'active' ao novo slide
-        slides[currentSlide].classList.add('active');
-    }
-
-    // Inicia a troca de slides
-    if (slides.length > 0) {
-        setInterval(nextSlide, slideInterval);
-    }
-    */
     
 });
