@@ -11,33 +11,37 @@ import jakarta.persistence.Column;
 @Table (name = "tb_carro")
 public class Carro {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // RESTAURADO para AUTO_INCREMENT (estabilidade)
+    @GeneratedValue(strategy = GenerationType.IDENTITY) 
     @Column(name = "id_carro") 
-    private Integer idCarro; // Corrigido para camelCase
+    private Integer idCarro;
     
     @Column(name = "placa") 
     private String placa;
     
     @Column(name = "quilometragem") 
-    private Double quilometragem; // Alterado para Double (boa prática)
+    private Double quilometragem;
     
     @Column(name = "cor")
-    private String cor; // Corrigido para camelCase
+    private String cor;
     
     @Column(name = "status")
-    private Boolean status; // Corrigido para camelCase
+    private Boolean status; // true=Disponível, false=Alugado
     
     @Column(name = "ano_fabricacao")
-    private Integer anoFabricacao; // Corrigido para camelCase e Integer
+    private Integer anoFabricacao;
     
     @Column(name = "nome")
-    private String nome; // Corrigido para camelCase
+    private String nome;
+
+    // --- Coluna para "Exclusão Lógica" ---
+    @Column(name = "ativo")
+    private Boolean ativo; // true=Visível, false=Excluído/Inativo
 
     public Carro() {    
     }
     
-    // Construtor completo corrigido
-    public Carro(Integer idCarro, String placa, Double quilometragem, String cor, Boolean status, Integer anoFabricacao, String nome) {
+    // Construtor atualizado
+    public Carro(Integer idCarro, String placa, Double quilometragem, String cor, Boolean status, Integer anoFabricacao, String nome, Boolean ativo) {
         this.idCarro = idCarro;
         this.placa = placa;
         this.quilometragem = quilometragem;
@@ -45,9 +49,11 @@ public class Carro {
         this.status = status;
         this.anoFabricacao = anoFabricacao;
         this.nome = nome;
+        this.ativo = ativo; 
     }
 
-    // Getters and Setters (corrigidos para camelCase)
+    // --- Getters and Setters ---
+    
     public Integer getIdCarro() {
         return idCarro;
     }
@@ -104,15 +110,22 @@ public class Carro {
         this.nome = nome;
     }
     
+    // --- Métodos get/set para Ativo ---
+    public Boolean getAtivo() {
+        return ativo;
+    }
+
+    public void setAtivo(Boolean ativo) {
+        this.ativo = ativo;
+    }
+    
     @Override
     public String toString() {
         return "Carro{" +
                 "idCarro=" + idCarro +
                 ", placa='" + placa + '\'' +
-                ", quilometragem=" + quilometragem +
-                ", cor='" + cor + '\'' +
                 ", status=" + status +
-                ", anoFabricacao=" + anoFabricacao +
+                ", ativo=" + ativo +
                 ", nome='" + nome + '\'' +
                 '}';
     }

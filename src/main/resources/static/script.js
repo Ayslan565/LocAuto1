@@ -10,6 +10,54 @@ const mockData = {
 let currentUserRole = null;
 let graficoFrota = null;
 
+// =================================================================
+// FUNÇÃO (Manipulador do Checkbox)
+// =================================================================
+async function handleConcluirContrato(checkboxElement, contratoId) {
+    const row = checkboxElement.closest('tr');
+    const statusDesejado = checkboxElement.checked;
+
+    if (!statusDesejado) {
+        alert("Não é possível reabrir um contrato por esta interface.");
+        checkboxElement.checked = true;
+        return;
+    }
+
+    if (!confirm(`Tem certeza que deseja CONCLUIR o contrato ID ${contratoId}? Esta ação irá liberar o carro.`)) {
+        checkboxElement.checked = false;
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/contratos/${contratoId}/concluir`, {
+            method: 'PATCH'
+        });
+
+        if (!response.ok) {
+            throw new Error(`Erro ${response.status} ao tentar concluir o contrato.`);
+        }
+
+        const data = await response.json(); 
+        checkboxElement.disabled = true; 
+        
+        if (row) {
+            row.style.backgroundColor = '#f0f0f0';
+            const statusCell = row.querySelector('td:nth-child(7)');
+            if (statusCell) {
+                statusCell.textContent = data.statusContrato;
+            }
+        }
+        
+        loadDashboardData();
+
+    } catch (error) {
+        console.error('Falha ao concluir contrato:', error);
+        alert('ERRO: Não foi possível concluir o contrato.\n' + error.message);
+        checkboxElement.checked = false;
+    }
+}
+
+
 window.calcularValorLocacao = () => {
     const inicioStr = document.getElementById('contrato-data-inicio').value;
     const fimStr = document.getElementById('contrato-data-fim').value;
@@ -103,7 +151,7 @@ async function renderContratosView() {
              return;
         }
         const contratos = await response.json();
-        tableBody.innerHTML = getTableRows('Contrato', contratos);
+        tableBody.innerHTML = getTableRows('contrato', contratos);
     } catch (error) {
         console.error('Falha ao buscar contratos:', error);
         tableBody.innerHTML = `<tr><td colspan="8" style="text-align:center; color: red;">Falha de rede ao tentar carregar contratos.</td></tr>`;
@@ -155,7 +203,7 @@ async function renderDataView(viewId, entityName, endpoint, filterParamName = nu
     if (filterParamName) {
         document.getElementById(`${viewId}-search-button`).addEventListener('click', () => {
             const searchTerm = document.getElementById(`${viewId}-search-input`).value;
-            renderDataView(viewId, entityName, endpoint, filterParamName, searchTerm);
+            fetchDataAndRenderTable(viewId, endpoint, filterParamName, searchTerm);
         });
         
         document.getElementById(`${viewId}-search-input`).addEventListener('keyup', (event) => {
@@ -183,7 +231,7 @@ async function fetchDataAndRenderTable(viewId, endpoint, filterParamName, search
         if (!response.ok) {
             const errorMsg = response.status === 404 
                 ? `API não encontrada (${url}).`
-                : `Erro ao buscar dados (${response.status})`;
+                : `Erro no servidor (${response.status})`;
             tableBody.innerHTML = `<tr><td colspan="8" style="text-align:center; color: red;">${errorMsg}</td></tr>`;
             return;
         }
@@ -272,6 +320,9 @@ function getTableRows(entityName, data) {
         } else if (entityName === 'carro') {
             const statusTxt = item.status ? 'Disponível' : 'Alugado';
             
+            const statusColor = item.status ? 'var(--success-color)' : 'var(--danger-color)';
+            const statusStyle = `style="color: ${statusColor}; font-weight: bold;"`;
+            
             cells = `
                 <td>${item.idCarro}</td>
                 <td>${item.nome}</td>
@@ -279,37 +330,70 @@ function getTableRows(entityName, data) {
                 <td>${item.anoFabricacao}</td>
                 <td>${item.cor}</td>
                 <td>${item.quilometragem}</td>
-                <td>${statusTxt}</td>`;
+                <td ${statusStyle}>${statusTxt}</td>`;
         
         } else if (entityName === 'contrato') {
              const valor = item.valorTotal || 0;
              const valorFormatado = valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
              const dtInicio = item.dataInicio ? new Date(item.dataInicio).toLocaleDateString('pt-BR') : 'N/D';
-             const dtFim = item.dataFim ? new Date(item.dataFim).toLocaleDateString('pt-BR') : 'N/D';
+
+             let rowStyle = '';
+             let dataFimObj = null;
+
+             const today = new Date();
+             today.setHours(0, 0, 0, 0);
+             
              const statusTxt = item.statusContrato || 'ATIVO';
+
+             if (item.dataFim) {
+                 dataFimObj = new Date(item.dataFim);
+                 dataFimObj.setHours(0, 0, 0, 0); 
+
+                 if (dataFimObj.getTime() < today.getTime()) {
+                     rowStyle = 'style="background-color: #f8d7da;"'; // Vermelho claro
+                 } 
+                 else if (dataFimObj.getTime() === today.getTime()) {
+                     rowStyle = 'style="background-color: #fff3cd;"'; // Amarelo claro
+                 }
+             }
+             
+             const dtFim = item.dataFim ? new Date(item.dataFim).toLocaleDateString('pt-BR') : 'N/D';
              
              if (currentUserRole === 'GERENTE' || currentUserRole === 'FUNCIONARIO') {
-                 const isChecked = (statusTxt === 'CONCLUIDO'); 
-                 actions = `<input type="checkbox" ${isChecked ? 'checked' : ''} disabled>`;
+                 const isChecked = (statusTxt === 'CONCLUIDO');
+                 if (isChecked) {
+                     rowStyle = 'style="background-color: #f0f0f0;"'; // Cinza claro
+                     actions = `<input type="checkbox" checked disabled>`;
+                 } else {
+                     actions = `<input type="checkbox" onchange="handleConcluirContrato(this, ${item.idContrato})">`;
+                 }
              } else {
                  actions = `<span style="color: var(--secondary-color);"><i>Visualização</i></span>`;
              }
              
              cells = `
                 <td>${item.idContrato}</td>
-                <td>${item.usuarioCliente?.pessoa?.nome || 'N/D'}</td>
-                <td>${item.carro?.nome || 'N/D'}</td>
+                <td>${item.clienteNome || 'N/D'}</td>
+                <td>${item.carroNome || 'N/D'}</td>
                 <td>${dtInicio}</td>
                 <td>${dtFim}</td>
-                <td>${valorTotal}</td>
+                <td>${valorFormatado}</td>
                 <td>${statusTxt}</td>
              `;
+             
+             html += `<tr ${rowStyle}>${cells}<td>${actions}</td></tr>`;
+             
+             return; 
         }
         
         html += `<tr>${cells}<td>${actions}</td></tr>`;
     });
     return html;
 }
+
+// =================================================================
+// LÓGICA DE NAVEGAÇÃO, INICIALIZAÇÃO E FORMULÁRIOS
+// =================================================================
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -762,6 +846,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    // Lida com formulários de simulação
     document.querySelectorAll('.crud-form:not(#clientes-form):not(#contratos-form)').forEach(form => {
         form.addEventListener('submit', (e) => {
             e.preventDefault();
@@ -776,9 +861,55 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    window.confirmDelete = (entityId, entityName) => {
-        if (confirm(`Tem certeza que deseja remover o(a) ${entityName} ID ${entityId}? (API de DELETE real precisa ser implementada aqui)`)) {
-            alert(`Simulação de remoção: ${entityName} ID ${entityId} removido.`);
+    window.confirmDelete = async (entityId, entityName) => {
+        if (!confirm(`Tem certeza que deseja remover o(a) ${entityName} ID ${entityId}?`)) {
+            return;
+        }
+
+        let endpoint = '';
+        let viewToReload = '';
+
+        if (entityName === 'carro') {
+            endpoint = `/detalhesCarros/${entityId}`;
+            viewToReload = 'carros-view';
+        } else {
+            alert(`Ainda não sei deletar: ${entityName}`);
+            return;
+        }
+
+        try {
+            const response = await fetch(endpoint, {
+                method: 'DELETE'
+            });
+
+            if (response.ok) { // Sucesso (204 No Content)
+                alert(`${entityName} ID ${entityId} removido (inativado) com sucesso.`);
+                if (viewToReload) {
+                    changeView(viewToReload); // Recarrega a view
+                }
+            } else {
+                // Trata os erros do backend (400 = Alugado, 404 = Não encontrado)
+                let errorMsg = `Erro ${response.status} ao deletar.`;
+                
+                try {
+                    const errorText = await response.text();
+                    const errorData = JSON.parse(errorText);
+                    errorMsg = errorData.message || errorData.error || errorMsg;
+
+                } catch(e) {
+                     if (response.status === 400) {
+                        errorMsg = "Este carro está alugado ou vinculado a contratos e não pode ser excluído.";
+                    } else if (response.status === 404) {
+                        errorMsg = "Carro não encontrado.";
+                    }
+                }
+                
+                throw new Error(errorMsg);
+            }
+
+        } catch (error) {
+            console.error(`Falha ao deletar ${entityName}:`, error);
+            alert(`ERRO: ${error.message}`);
         }
     };
     

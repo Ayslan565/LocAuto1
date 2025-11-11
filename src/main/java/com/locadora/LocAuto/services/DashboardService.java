@@ -4,25 +4,27 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.locadora.LocAuto.dto.DashboardResumoDTO;
-import com.locadora.LocAuto.repositorio.repositorioCarro;
-import com.locadora.LocAuto.repositorio.repositorioCliente;
-import com.locadora.LocAuto.repositorio.repositorioContrato;
+import com.locadora.LocAuto.repositorio.RepositorioCarro; // Corrigido
+import com.locadora.LocAuto.repositorio.repositorioCliente; // (Pode corrigir este também)
+import com.locadora.LocAuto.repositorio.RepositorioContrato; // Corrigido
 
 @Service
 public class DashboardService {
 
     @Autowired
-    private repositorioCarro repositorioCarro;
+    private RepositorioCarro repositorioCarro; // Corrigido
 
     @Autowired
     private repositorioCliente repositorioCliente;
     
     @Autowired
-    private repositorioContrato repositorioContrato; 
+    private RepositorioContrato repositorioContrato; // Corrigido
 
     public DashboardResumoDTO getResumo() {
-        long disponiveis = repositorioCarro.countByStatus(true);
-        long alugados = repositorioCarro.countByStatus(false);
+        // Corrigido para usar o método que filtra por 'ativo=true'
+        long disponiveis = repositorioCarro.countByStatusAndAtivoIsTrue(true);
+        long alugados = repositorioCarro.countByStatusAndAtivoIsTrue(false);
+        
         long clientes = repositorioCliente.count();
         long ativos = repositorioContrato.countByStatusContrato("ATIVO"); 
 

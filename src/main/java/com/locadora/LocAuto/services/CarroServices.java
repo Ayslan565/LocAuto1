@@ -1,7 +1,11 @@
 package com.locadora.LocAuto.services;
 
 import com.locadora.LocAuto.Model.Carro;
-import com.locadora.LocAuto.repositorio.repositorioCarro;
+// =================================================================
+// 1. CORREÇÃO: Imports com 'R' maiúsculo
+// =================================================================
+import com.locadora.LocAuto.repositorio.RepositorioCarro; 
+import com.locadora.LocAuto.repositorio.RepositorioContrato;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -12,8 +16,14 @@ import java.util.Optional;
 @Service
 public class CarroServices {
 
+    // =================================================================
+    // 2. CORREÇÃO: Tipos de variável com 'R' maiúsculo
+    // =================================================================
     @Autowired
-    private repositorioCarro repositorioCarro;
+    private RepositorioCarro repositorioCarro;
+
+    @Autowired
+    private RepositorioContrato repositorioContrato;
 
     public Carro salvar(Carro carro) {
         if (carro.getPlaca() == null || carro.getPlaca().length() != 7) {
@@ -23,8 +33,10 @@ public class CarroServices {
             );
         }
         
+        // Garante que um carro novo sempre seja 'Disponível' E 'Ativo'
         if (carro.getIdCarro() == null) {
-            carro.setStatus(true);
+            carro.setStatus(true); // Disponível
+            carro.setAtivo(true);  // Ativo (Visível)
         }
 
         return repositorioCarro.save(carro);
@@ -34,24 +46,50 @@ public class CarroServices {
         return repositorioCarro.findById(id);
     }
 
-    // ATUALIZADO: Aceita um parâmetro de filtro 'placa'
     public Iterable<Carro> listarTodos(String placa) {
+        // Usa os métodos que só buscam carros ATIVOS (ativo=true)
         if (placa != null && !placa.isBlank()) {
-            return repositorioCarro.findByPlacaStartsWith(placa);
+            return repositorioCarro.findByPlacaStartsWithAndAtivoIsTrue(placa);
         }
-        return repositorioCarro.findAll();
+        return repositorioCarro.findAllByAtivoIsTrue();
     }
 
     public void deletar(Integer id) {
-        if (!repositorioCarro.existsById(id)) {
+        
+        Optional<Carro> carroOpt = repositorioCarro.findById(id);
+
+        if (carroOpt.isEmpty()) {
             throw new ResponseStatusException(
                 HttpStatus.NOT_FOUND, 
                 "Carro não encontrado."
             );
         }
-        repositorioCarro.deleteById(id);
+        
+        Carro carro = carroOpt.get();
+
+        // Verificação 1: Não pode estar Alugado
+        if (carro.getStatus() == null || !carro.getStatus()) {
+            throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST, 
+                "Este carro está alugado e não pode ser excluído."
+            );
+        }
+
+        // Verificação 2: Não pode ter histórico de contratos
+        long totalContratos = repositorioContrato.countByCarro(carro);
+        if (totalContratos > 0) {
+            throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST, 
+                "Este carro está vinculado a " + totalContratos + " contrato(s) no histórico e não pode ser excluído."
+            );
+        }
+
+        // Se passar nas duas verificações, inativa o carro
+        carro.setAtivo(false); 
+        repositorioCarro.save(carro); 
     }
 
     public void adicionarInfCarro(Carro carro) {
+        // Método placeholder
     }
 }

@@ -139,6 +139,7 @@ public class SecurityConfig {
                 "/index.html", 
                 "/script.js",
                 "/images/**",
+                "formHandlers.js",
                 "/api/public/**"
             ).permitAll()
             

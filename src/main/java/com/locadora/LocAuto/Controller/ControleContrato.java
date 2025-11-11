@@ -2,12 +2,16 @@ package com.locadora.LocAuto.Controller;
 
 import com.locadora.LocAuto.Model.Contrato;
 import com.locadora.LocAuto.dto.ContratoFormDTO; 
+import com.locadora.LocAuto.dto.ContratoRespostaDTO; 
+import com.locadora.LocAuto.dto.ContratoDetalheDTO;
 import com.locadora.LocAuto.services.ContratoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+
+import java.util.List; 
 
 @RestController
 @RequestMapping("/api/contratos")
@@ -17,7 +21,7 @@ public class ControleContrato {
     private ContratoService contratoService;
 
     @GetMapping
-    public Iterable<Contrato> listarTodos() {
+    public List<ContratoDetalheDTO> listarTodos() { 
         return contratoService.listarTodos();
     }
 
@@ -29,10 +33,10 @@ public class ControleContrato {
     }
 
     @PostMapping
-    public ResponseEntity<Contrato> cadastrar(@RequestBody ContratoFormDTO dto) { 
+    public ResponseEntity<ContratoRespostaDTO> cadastrar(@RequestBody ContratoFormDTO dto) { 
         try {
-            Contrato novoContrato = contratoService.salvar(dto); 
-            return new ResponseEntity<>(novoContrato, HttpStatus.CREATED); 
+            ContratoRespostaDTO novoContratoDTO = contratoService.salvar(dto); 
+            return new ResponseEntity<>(novoContratoDTO, HttpStatus.CREATED); 
         } catch (ResponseStatusException e) {
             throw e; 
         }
@@ -45,9 +49,7 @@ public class ControleContrato {
             return ResponseEntity.notFound().build();
         }
 
-        // Esta é uma simulação, pois o Service precisa de um método de atualização dedicado.
         Contrato contratoExistente = contratoService.buscarPorId(id).get();
-        // A lógica de atualização (e a chamada ao service) deve vir aqui.
         
         return ResponseEntity.ok(contratoExistente); 
     }
@@ -57,6 +59,20 @@ public class ControleContrato {
         try {
             contratoService.deletar(id);
             return ResponseEntity.noContent().build(); 
+        } catch (ResponseStatusException e) {
+            throw e; 
+        }
+    }
+    
+    /**
+     * NOVO ENDPOINT: Marca um contrato como concluído.
+     * Usamos PatchMapping, pois é uma atualização parcial.
+     */
+    @PatchMapping("/{id}/concluir")
+    public ResponseEntity<ContratoDetalheDTO> concluirContrato(@PathVariable Integer id) {
+        try {
+            ContratoDetalheDTO contratoAtualizado = contratoService.concluirContrato(id);
+            return ResponseEntity.ok(contratoAtualizado);
         } catch (ResponseStatusException e) {
             throw e; 
         }

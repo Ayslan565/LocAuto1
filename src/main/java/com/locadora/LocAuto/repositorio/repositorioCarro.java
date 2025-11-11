@@ -5,10 +5,14 @@ import com.locadora.LocAuto.Model.Carro;
 import java.util.List;
 
 @Repository
-public interface repositorioCarro extends JpaRepository<Carro, Integer> {
+public interface RepositorioCarro extends JpaRepository<Carro, Integer> { // <-- 'R' Maiúsculo
     
-    List<Carro> findByPlacaStartsWith(String placa);
+    List<Carro> findByPlacaStartsWithAndAtivoIsTrue(String placa);
     
-    // Usado para o Dashboard
-    long countByStatus(boolean status);
+    List<Carro> findAllByAtivoIsTrue();
+
+    long countByStatusAndAtivoIsTrue(boolean status);
+    
+    // Necessário para o DashboardService (antes da exclusão lógica)
+    long countByStatus(boolean status); 
 }

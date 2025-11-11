@@ -5,8 +5,10 @@ import com.locadora.LocAuto.Model.Contrato;
 import com.locadora.LocAuto.Model.Funcionario; 
 import com.locadora.LocAuto.Model.Usuario; 
 import com.locadora.LocAuto.dto.ContratoFormDTO; 
-import com.locadora.LocAuto.repositorio.repositorioCarro; 
-import com.locadora.LocAuto.repositorio.repositorioContrato;
+import com.locadora.LocAuto.dto.ContratoRespostaDTO;
+import com.locadora.LocAuto.dto.ContratoDetalheDTO;
+import com.locadora.LocAuto.repositorio.RepositorioCarro; 
+import com.locadora.LocAuto.repositorio.RepositorioContrato;
 import com.locadora.LocAuto.repositorio.repositorioFuncionario; 
 import com.locadora.LocAuto.repositorio.repositorioUsuario; 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,18 +23,19 @@ import java.math.BigDecimal;
 import java.util.Date;
 import java.util.Optional;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class ContratoService {
 
     @Autowired
-    private repositorioContrato repositorioContrato;
+    private RepositorioContrato repositorioContrato;
     
     @Autowired
     private CarroServices carroServices; 
 
     @Autowired
-    private repositorioCarro repositorioCarro; 
+    private RepositorioCarro repositorioCarro; 
     
     @Autowired
     private repositorioUsuario repositorioUsuario; 
@@ -44,14 +47,14 @@ public class ContratoService {
     private BigDecimal calcularValorTotal(Date dataInicio, Date dataFim) {
         if (dataInicio != null && dataFim != null) {
             long diff = dataFim.getTime() - dataInicio.getTime();
-            long dias = Math.max(1, diff / (1000 * 60 * 60 * 24)); // Pelo menos 1 dia
+            long dias = Math.max(1, diff / (1000 * 60 * 60 * 24)); 
             return new BigDecimal(dias * 150.00); 
         }
         return new BigDecimal("150.00"); 
     }
     
     @Transactional
-    public Contrato salvar(ContratoFormDTO dto) {
+    public ContratoRespostaDTO salvar(ContratoFormDTO dto) { 
         
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String loginFuncionario = authentication.getName();
@@ -59,7 +62,6 @@ public class ContratoService {
         Usuario usuarioFuncionario = repositorioUsuario.findByLogin(loginFuncionario)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Funcionário logado não encontrado."));
         
-        // Esta linha agora funciona (findByPessoa)
         Funcionario funcionario = repositorioFuncionario.findByPessoa(usuarioFuncionario.getPessoa())
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "O usuário logado não é um funcionário válido."));
 
@@ -82,7 +84,14 @@ public class ContratoService {
         contrato.setValorTotal(calcularValorTotal(contrato.getDataInicio(), contrato.getDataFim()));
         contrato.setStatusContrato("ATIVO");
         
-        return repositorioContrato.save(contrato);
+        // Tranca o carro
+        carro.setStatus(false);
+        repositorioCarro.save(carro);
+        
+        Contrato contratoSalvo = repositorioContrato.save(contrato);
+        
+        // Retorna o DTO de Resposta Corrigido
+        return new ContratoRespostaDTO(contratoSalvo.getIdContrato(), contratoSalvo.getStatusContrato());
     }
 
     public Optional<Contrato> buscarPorId(Integer id) {
@@ -90,7 +99,7 @@ public class ContratoService {
     }
 
     @Transactional(readOnly = true) 
-    public Iterable<Contrato> listarTodos() {
+    public List<ContratoDetalheDTO> listarTodos() { 
         
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String loginUsuario = authentication.getName(); 
@@ -99,16 +108,47 @@ public class ContratoService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário autenticado não encontrado no BD."));
         
         String role = usuarioAutenticado.getGrupoUsuario().getNomeGrupo(); 
+        Iterable<Contrato> contratos;
 
+        // CORREÇÃO (N+1): Usa os novos métodos otimizados do repositório
         if ("GERENTE".equals(role) || "FUNCIONARIO".equals(role)) {
-            return repositorioContrato.findAll();
+            contratos = repositorioContrato.findAllCompletos();
         } 
-        
-        if ("CLIENTE".equals(role)) {
-            return repositorioContrato.findByUsuarioCliente(usuarioAutenticado);
+        else if ("CLIENTE".equals(role)) {
+            contratos = repositorioContrato.findByUsuarioClienteCompleto(usuarioAutenticado);
         }
+        else {
+            contratos = List.of(); 
+        }
+        
+        // CORREÇÃO (Dados Órfãos):
+        // Mapeia para DTOs com checagem de segurança para dados órfãos (nulls)
+        return ((List<Contrato>) contratos).stream()
+            .map(contrato -> {
+                
+                // Checagem de segurança para Cliente (Usuario)
+                String clienteNome = "Cliente Inválido/Excluído";
+                if (contrato.getUsuarioCliente() != null && contrato.getUsuarioCliente().getPessoa() != null) {
+                    clienteNome = contrato.getUsuarioCliente().getPessoa().getNome();
+                }
 
-        return List.of(); 
+                // Checagem de segurança para Carro
+                String carroNome = "Carro Inválido/Excluído";
+                if (contrato.getCarro() != null) {
+                    carroNome = contrato.getCarro().getNome();
+                }
+
+                return new ContratoDetalheDTO(
+                    contrato.getIdContrato(),
+                    contrato.getDataInicio(),
+                    contrato.getDataFim(),
+                    contrato.getValorTotal(),
+                    contrato.getStatusContrato(),
+                    clienteNome, // Nome seguro
+                    carroNome      // Nome seguro
+                );
+            })
+            .collect(Collectors.toList());
     }
 
     public void deletar(Integer id) {
@@ -116,5 +156,44 @@ public class ContratoService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Contrato não encontrado.");
         }
         repositorioContrato.deleteById(id);
+    }
+    
+    /**
+     * NOVO MÉTODO: Conclui um contrato e libera o carro.
+     * Esta é a regra de negócio que substitui a necessidade de uma trigger.
+     */
+    @Transactional
+    public ContratoDetalheDTO concluirContrato(Integer id) {
+        // 1. Encontra o contrato ou falha
+        Contrato contrato = repositorioContrato.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Contrato não encontrado."));
+
+        // 2. Pega o carro associado
+        Carro carro = contrato.getCarro();
+        if (carro == null) {
+            // Se o carro foi excluído (dado órfão), apenas marca o contrato como concluído
+             contrato.setStatusContrato("CONCLUIDO");
+             repositorioContrato.save(contrato);
+        } else {
+             // 3. Atualiza os status
+            contrato.setStatusContrato("CONCLUIDO");
+            carro.setStatus(true); // true = Disponível
+
+            // 4. Salva as duas entidades na mesma transação
+            repositorioContrato.save(contrato);
+            repositorioCarro.save(carro);
+        }
+
+        // 5. Retorna o DTO atualizado para o frontend
+        return new ContratoDetalheDTO(
+                contrato.getIdContrato(),
+                contrato.getDataInicio(),
+                contrato.getDataFim(),
+                contrato.getValorTotal(),
+                contrato.getStatusContrato(),
+                (contrato.getUsuarioCliente() != null && contrato.getUsuarioCliente().getPessoa() != null) 
+                    ? contrato.getUsuarioCliente().getPessoa().getNome() : "Cliente Excluído",
+                (contrato.getCarro() != null) ? contrato.getCarro().getNome() : "Carro Excluído"
+        );
     }
 }
