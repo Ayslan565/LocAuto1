@@ -122,60 +122,35 @@ body {
 
 /* --- ATUALIZAÇÃO CARROSSEL (INÍCIO) --- */
 
-/* NOVO: Este é o "trilho" que vai se mover. 
-   O 'width' deve ser (100% * NÚMERO_DE_SLIDES)
-   Ex: 3 slides = 300% 
-*/
 .slide-wrapper {
     width: 300%; /* Assumindo 3 slides */
     height: 100%;
     display: flex;
     position: relative;
-    
-    /* 15s de duração total (5s por slide) */
     animation: slide-animation 15s infinite; 
 }
 
-/* ATUALIZADO: Regra do Slide Individual (cada slide ocupa 100% para sair totalmente da tela) */
 .background-slideshow .slide,
 .background-slideshow .slide-wrapper .slide {
     flex: 0 0 100%;
     width: 100%;
     height: 100%;
     
-    /* preenchimento total da área do slide */
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
     
-    /* bordas arredondadas de 15px conforme pedido */
     border-radius: 15px;
     overflow: hidden;
 }
 
-/* REMOVIDO: A classe .active não é mais necessária para esta animação */
-/*
-.background-slideshow .slide.active {
-    opacity: 1;
-}
-*/
-
-/* NOVO: Animação de Keyframes para o Carrossel (passos de 0%, -100%, -200%) */
-/* Os percentuais devem ser ajustados se você mudar o número de slides */
 @keyframes slide-animation {
-    /* Slide 1 visível */
     0%    { transform: translateX(0%); }
     30%   { transform: translateX(0%); }
-
-    /* Transição para Slide 2 */
     33.33% { transform: translateX(-100%); }
     63.33% { transform: translateX(-100%); }
-
-    /* Transição para Slide 3 */
     66.66% { transform: translateX(-200%); }
     96.66% { transform: translateX(-200%); }
-
-    /* Volta ao início */
     100% { transform: translateX(0%); }
 }
 
@@ -445,6 +420,12 @@ body {
     flex: 1;
     text-align: center;
     padding: 25px;
+    /* --- MODIFICAÇÃO PARA ALINHAMENTO VERTICAL --- */
+    display: flex;
+    flex-direction: column; 
+    align-items: center; /* Centraliza horizontalmente */
+    justify-content: center;
+    /* --- FIM MODIFICAÇÃO --- */
 }
 
 .card.kpi i {
@@ -456,12 +437,17 @@ body {
 .card.kpi p {
     font-size: 0.9em;
     color: var(--secondary-color);
+    /* margin-bottom: 5px; (removido para aproximar o número) */
 }
 
 .card.kpi span {
     font-size: 1.8em;
     font-weight: bold;
     color: var(--text-dark);
+    /* --- MODIFICAÇÃO PARA ALINHAMENTO VERTICAL --- */
+    display: block; /* Garante que ocupe a linha para centralizar */
+    width: 100%; 
+    /* --- FIM MODIFICAÇÃO --- */
 }
 
 .primary-color { color: var(--primary-color); }

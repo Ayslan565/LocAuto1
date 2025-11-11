@@ -19,27 +19,21 @@
                     <i class="fas fa-tachometer-alt"></i> Dashboard
                 </a>
                 <div class="nav-section-title" id="nav-section-management">Gerenciamento de Entidades</div>
-                <a href="#" class="nav-item" data-target="pessoas-view" id="nav-pessoas">
-                    <i class="fas fa-users"></i> Pessoas 
-                </a>
+                
                 <a href="#" class="nav-item" data-target="clientes-view" id="nav-clientes">
                     <i class="fas fa-user-tie"></i> Clientes
                 </a>
                 <a href="#" class="nav-item" data-target="funcionarios-view" id="nav-funcionarios">
                     <i class="fas fa-id-card"></i> Funcionários
                 </a>
-                <a href="#" class="nav-item" data-target="gerentes-view" id="nav-gerentes">
-                    <i class="fas fa-user-shield"></i> Gerentes
-                </a>
+                
                 <a href="#" class="nav-item" data-target="carros-view" id="nav-carros">
                     <i class="fas fa-car"></i> Carros
                 </a>
                 <a href="#" class="nav-item" data-target="contratos-view" id="nav-contratos">
                     <i class="fas fa-file-signature"></i> Contratos 
                 </a>
-                <a href="#" class="nav-item" data-target="acessos-view" id="nav-acessos">
-                    <i class="fas fa-lock"></i> Níveis de Acesso
-                </a>
+                
             </nav>
             <div class="user-info">
                 <i class="fas fa-user-circle"></i> <span id="user-info-name">Usuário</span>
@@ -70,7 +64,7 @@
                         <p>Contratos Ativos</p>
                         <span id="kpi-contratos-ativos">...</span>
                     </div>
-                    <div class="card kpi">
+                    <div class="card kpi" id="kpi-clientes-card">
                         <i class="fas fa-users success-color"></i>
                         <p>Clientes Cadastrados</p>
                         <span id="kpi-clientes">...</span>
@@ -85,12 +79,11 @@
                 </div>
             </section>
             
-            <section id="pessoas-view" class="view"></section>
+            
             <section id="clientes-view" class="view"></section>
             <section id="funcionarios-view" class="view"></section>
             <section id="carros-view" class="view"></section>
-            <section id="acessos-view" class="view"></section>
-            <section id="gerentes-view" class="view"></section>
+            
             
             <section id="contratos-view" class="view">
                 <div class="crud-header">
@@ -122,33 +115,6 @@
             </section>
         </main>
         
-        <div id="pessoas-form-container" class="form-overlay hidden">
-             <div class="form-modal">
-                <h4><span id="pessoas-form-title">Cadastrar</span> Pessoa</h4>
-                <form id="pessoas-form" onsubmit="handlePessoaSubmit(event)" data-entity="Pessoa">
-                    <input type="hidden" id="pessoa-id">
-                    <div class="form-row">
-                        <div class="input-group">
-                            <label>Nome Completo</label>
-                            <input type="text" id="pessoa-nome" required>
-                        </div>
-                        <div class="input-group">
-                            <label>CPF (11 dígitos)</label>
-                            <input type="text" id="pessoa-cpf" maxlength="11" required>
-                        </div>
-                    </div>
-                    <div class="input-group full-width">
-                        <label>Email</label>
-                        <input type="email" id="pessoa-email">
-                    </div>
-                    <p id="pessoa-form-error" class="hidden" style="color: var(--danger-color); font-weight: bold; margin-bottom: 10px;"></p>
-                    <div class="form-actions">
-                        <button type="submit" class="btn primary">Salvar</button>
-                        <button type="button" class="btn secondary" onclick="hideForm('pessoas-view')">Cancelar</button>
-                    </div>
-                </form>
-            </div>
-        </div>
         
         <div id="clientes-form-container" class="form-overlay hidden">
             <div class="form-modal">
@@ -303,9 +269,6 @@
             </div>
         </div>
         
-        <div id="gerentes-form-container" class="form-overlay hidden">
-             </div>
-
     </div>
     <script src="script.js"></script> 
 </body>

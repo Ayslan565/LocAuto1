@@ -10,9 +10,6 @@ const mockData = {
 let currentUserRole = null;
 let graficoFrota = null;
 
-// =================================================================
-// FUNÇÃO (Manipulador do Checkbox)
-// =================================================================
 async function handleConcluirContrato(checkboxElement, contratoId) {
     const row = checkboxElement.closest('tr');
     const statusDesejado = checkboxElement.checked;
@@ -94,6 +91,17 @@ window.calcularValorLocacao = () => {
 
 
 async function loadDashboardData() {
+    const kpiClientesCard = document.getElementById('kpi-clientes-card');
+    if (currentUserRole === 'CLIENTE') {
+        if (kpiClientesCard) {
+            kpiClientesCard.style.display = 'none';
+        }
+    } else {
+        if (kpiClientesCard) {
+            kpiClientesCard.style.display = 'flex'; 
+        }
+    }
+    
     try {
         const response = await fetch('/api/dashboard/resumo');
         if (!response.ok) throw new Error('Falha ao buscar resumo.');
@@ -102,8 +110,11 @@ async function loadDashboardData() {
         document.getElementById('kpi-carros-disponiveis').innerText = data.carrosDisponiveis;
         document.getElementById('kpi-carros-alugados').innerText = data.carrosAlugados;
         document.getElementById('kpi-contratos-ativos').innerText = data.contratosAtivos; 
-        document.getElementById('kpi-clientes').innerText = data.clientesCadastrados;
         
+        if (currentUserRole !== 'CLIENTE') {
+            document.getElementById('kpi-clientes').innerText = data.clientesCadastrados;
+        }
+
         renderDashboardCharts(data);
         
     } catch (error) {
@@ -111,7 +122,9 @@ async function loadDashboardData() {
         document.getElementById('kpi-carros-disponiveis').innerText = 'Erro';
         document.getElementById('kpi-carros-alugados').innerText = 'Erro';
         document.getElementById('kpi-contratos-ativos').innerText = 'Erro';
-        document.getElementById('kpi-clientes').innerText = 'Erro';
+        if (currentUserRole !== 'CLIENTE') {
+            document.getElementById('kpi-clientes').innerText = 'Erro';
+        }
     }
 }
 
@@ -141,9 +154,34 @@ function renderDashboardCharts(data) {
 }
 
 async function renderContratosView() {
+    const showNewButton = (currentUserRole === 'GERENTE' || currentUserRole === 'FUNCIONARIO');
+
+    const view = document.getElementById('contratos-view');
+    view.innerHTML = `
+        <div class="crud-header">
+            <h3>Gerenciar Contratos</h3>
+            ${showNewButton ? `
+            <button class="btn primary" onclick="showForm('contratos-view', 'create')">
+                <i class="fas fa-plus"></i> Novo Contrato
+            </button>` : ''}
+        </div>
+        
+        <div class="card">
+            <h4>Contratos em Andamento</h4>
+            <table class="data-table">
+                <thead>
+                    ${getTableHeader('Contrato')}
+                </thead>
+                <tbody>
+                    <tr><td colspan="8" style="text-align:center;">Carregando seus contratos...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    `;
+
     const tableBody = document.querySelector('#contratos-view .data-table tbody');
     if (!tableBody) return;
-    tableBody.innerHTML = '<tr><td colspan="8" style="text-align:center;">Carregando seus contratos...</td></tr>';
+
     try {
         const response = await fetch('/api/contratos'); 
         if (!response.ok) {
@@ -275,9 +313,16 @@ function getTableRows(entityName, data) {
         
         actions = ''; 
         
+        // NOVO: Adiciona o botão de visualização (Olhinho)
+        if (entityName === 'cliente' || entityName === 'pessoa' || entityName === 'funcionario' || entityName === 'carro') {
+            const idParaAcao = entityName === 'cliente' ? item.id_cliente : entityId;
+            actions += `<button class="btn small view-details" onclick="showForm('${entityName}s-view', 'view', ${idParaAcao})"><i class="fas fa-eye"></i></button>`;
+        }
+        
         if (currentUserRole === 'GERENTE' || currentUserRole === 'FUNCIONARIO') {
             if (entityName !== 'contrato') {
                  const idParaAcao = entityName === 'cliente' ? item.id_cliente : entityId;
+                 // Adiciona o botão de edição APÓS o de visualização
                  actions += `<button class="btn small edit" onclick="showForm('${entityName}s-view', 'edit', ${idParaAcao})"><i class="fas fa-edit"></i></button>`;
             }
         }
@@ -296,12 +341,12 @@ function getTableRows(entityName, data) {
                 const statusClass = item.status ? 'available' : 'rented';
                 actions = `<span class="status-badge ${statusClass}">${statusTxt}</span>`;
             } else {
-                actions = '<span style="color: var(--secondary-color);"><i>Visualização</i></span>';
+                actions = `<span style="color: var(--secondary-color);"><i>Visualização</i></span>`;
             }
         }
         
         if (entityName === 'pessoa') {
-            cells = `<td>${item.id}</td><td>${item.nome}</td><td>${item.CPF}</td><td>${item.email || 'N/D'}</td>`;
+            cells = `<td>${item.id}</td><td>${item.nome}</td><td>${item.cpf}</td><td>${item.email || 'N/D'}</td>`;
         
         } else if (entityName === 'cliente') {
             cells = `<td>${item.id_cliente}</td>
@@ -350,10 +395,10 @@ function getTableRows(entityName, data) {
                  dataFimObj.setHours(0, 0, 0, 0); 
 
                  if (dataFimObj.getTime() < today.getTime()) {
-                     rowStyle = 'style="background-color: #f8d7da;"'; // Vermelho claro
+                     rowStyle = 'style="background-color: #f8d7da;"'; 
                  } 
                  else if (dataFimObj.getTime() === today.getTime()) {
-                     rowStyle = 'style="background-color: #fff3cd;"'; // Amarelo claro
+                     rowStyle = 'style="background-color: #fff3cd;"'; 
                  }
              }
              
@@ -362,7 +407,7 @@ function getTableRows(entityName, data) {
              if (currentUserRole === 'GERENTE' || currentUserRole === 'FUNCIONARIO') {
                  const isChecked = (statusTxt === 'CONCLUIDO');
                  if (isChecked) {
-                     rowStyle = 'style="background-color: #f0f0f0;"'; // Cinza claro
+                     rowStyle = 'style="background-color: #f0f0f0;"'; 
                      actions = `<input type="checkbox" checked disabled>`;
                  } else {
                      actions = `<input type="checkbox" onchange="handleConcluirContrato(this, ${item.idContrato})">`;
@@ -410,23 +455,23 @@ document.addEventListener('DOMContentLoaded', () => {
             currentUserRole = role; 
 
             const navSectionMgmt = document.getElementById('nav-section-management');
-            const navPessoas = document.getElementById('nav-pessoas');
+            // const navPessoas = document.getElementById('nav-pessoas'); // REMOVIDO
             const navClientes = document.getElementById('nav-clientes');
             const navFuncionarios = document.getElementById('nav-funcionarios');
-            const navGerentes = document.getElementById('nav-gerentes'); 
+            // const navGerentes = document.getElementById('nav-gerentes'); // REMOVIDO
             const navCarros = document.getElementById('nav-carros');
             const navContratos = document.getElementById('nav-contratos');
-            const navAcessos = document.getElementById('nav-acessos');
+            // const navAcessos = document.getElementById('nav-acessos'); // REMOVIDO
             const userInfoName = document.getElementById('user-info-name');
 
             if (navSectionMgmt) navSectionMgmt.style.display = 'none';
-            if (navPessoas) navPessoas.style.display = 'none';
+            // if (navPessoas) navPessoas.style.display = 'none'; // REMOVIDO
             if (navClientes) navClientes.style.display = 'none';
             if (navFuncionarios) navFuncionarios.style.display = 'none';
-            if (navGerentes) navGerentes.style.display = 'none'; 
+            // if (navGerentes) navGerentes.style.display = 'none'; // REMOVIDO
             if (navCarros) navCarros.style.display = 'none';
             if (navContratos) navContratos.style.display = 'none';
-            if (navAcessos) navAcessos.style.display = 'none';
+            // if (navAcessos) navAcessos.style.display = 'none'; // REMOVIDO
             if (userInfoName) userInfoName.textContent = role;
 
             if (role === 'CLIENTE') {
@@ -442,13 +487,13 @@ document.addEventListener('DOMContentLoaded', () => {
             } 
             else if (role === 'GERENTE') {
                 navSectionMgmt.style.display = 'block';
-                navPessoas.style.display = 'flex';
+                // navPessoas.style.display = 'flex'; // REMOVIDO
                 navClientes.style.display = 'flex';
                 navFuncionarios.style.display = 'flex';
-                navGerentes.style.display = 'flex'; 
+                // navGerentes.style.display = 'flex'; // REMOVIDO
                 navCarros.style.display = 'flex';
                 navContratos.style.display = 'flex';
-                navAcessos.style.display = 'flex';
+                // navAcessos.style.display = 'flex'; // REMOVIDO
             }
             
             loadDashboardData();
@@ -480,9 +525,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (targetId === 'home-view') {
             loadDashboardData(); 
         } 
-        else if (targetId === 'pessoas-view') {
-            renderDataView('pessoas-view', 'Pessoa', '/detalhesPessoa/listar', 'cpf');
-        } 
+        // else if (targetId === 'pessoas-view') { ... } // REMOVIDO
         else if (targetId === 'clientes-view') {
             renderDataView('clientes-view', 'Cliente', '/detalhescliente/listar', 'cpf');
         }
@@ -495,9 +538,7 @@ document.addEventListener('DOMContentLoaded', () => {
         else if (targetId === 'contratos-view') {
             renderContratosView(); 
         } 
-        else if (targetId === 'acessos-view') {
-            renderAcessosView();
-        }
+        // else if (targetId === 'acessos-view') { ... } // REMOVIDO
     };
 
     navItems.forEach(item => {
@@ -507,44 +548,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
     
-    window.renderAcessosView = () => {
-        const container = document.getElementById('acessos-container');
-        if (!container) return;
-        const accessData = mockData.acessos;
-        let html = `
-            <h4>Matriz de Acessos por Perfil (CRUD)</h4>
-            <div class="access-table-container">
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Perfil</th>
-                            <th>Entidades Acessadas e Permissões (S/I/U/D)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr><td>CLIENTE</td><td>${accessData.CLIENTE}</td></tr>
-                        <tr><td>FUNCIONARIO</td><td>${accessData.FUNCIONARIO}</td></tr>
-                        <tr><td>GERENTE</td><td>${accessData.GERENTE}</td></tr>
-                    </tbody>
-                </table>
-            </div>
-            
-            <h4 style="margin-top: 30px; border-bottom: none;">Legenda dos Acessos (CRUD):</h4>
-            <ul style="list-style-type: none; padding: 0;">
-                <li><span style="font-weight: bold;">S</span> - ${accessData.S}</li>
-                <li><span style="font-weight: bold;">I</span> - ${accessData.I}</li>
-                <li><span style="font-weight: bold;">U</span> - ${accessData.U} (PUT/PATCH)</li>
-                <li><span style="font-weight: bold;">D</span> - ${accessData.D}</li>
-            </ul>
-        `;
-        container.innerHTML = html;
-    }
+    // window.renderAcessosView = () => { ... } // FUNÇÃO REMOVIDA
 
     window.showForm = async (viewId, mode, entityId = null) => {
         const entityKey = viewId.replace('-view', '');
         const formContainer = document.getElementById(`${entityKey}-form-container`);
         if (!formContainer) {
-             if (viewId === 'gerentes-view') return;
+             // if (viewId === 'gerentes-view') return; // REMOVIDO
              console.error(`Container do formulário ${viewId} não encontrado.`);
              return;
         }
@@ -552,20 +562,46 @@ document.addEventListener('DOMContentLoaded', () => {
         const formTitleSpan = document.getElementById(`${entityKey}-form-title`);
         const form = document.getElementById(`${entityKey}-form`);
         const errorEl = document.getElementById(`${entityKey}-form-error`);
+        const formInputs = form.querySelectorAll('input, select');
+        
+        const submitButton = form.querySelector('button[type="submit"]');
+        const cancelButton = form.querySelector('button.btn.secondary'); 
         
         if (errorEl) errorEl.classList.add('hidden');
         form.reset(); 
 
+        // 1. Definição do Modo e Título
         if (mode === 'create') {
             formTitleSpan.textContent = 'Cadastrar';
+            // submitButton.classList.remove('hidden'); // ANTIGO
+            if (submitButton) submitButton.style.display = 'inline-flex'; // CORRIGIDO
+            formInputs.forEach(input => input.removeAttribute('disabled'));
+            
+            cancelButton.textContent = 'Cancelar'; 
+            
             if (entityKey === 'contratos') {
                 loadContratoFormData();
             }
             formContainer.classList.remove('hidden');
             
-        } else if (mode === 'edit') {
-            formTitleSpan.textContent = 'Editar';
+        } else if (mode === 'edit' || mode === 'view') {
             
+            // 2. Título e botões
+            if (mode === 'edit') {
+                 formTitleSpan.textContent = 'Editar';
+                 // submitButton.classList.remove('hidden'); // ANTIGO
+                 if (submitButton) submitButton.style.display = 'inline-flex'; // CORRIGIDO
+                 formInputs.forEach(input => input.removeAttribute('disabled'));
+                 cancelButton.textContent = 'Cancelar';
+             } else { // mode === 'view'
+                 formTitleSpan.textContent = 'Visualizar (Somente Leitura)';
+                 // submitButton.classList.add('hidden'); // ANTIGO
+                 if (submitButton) submitButton.style.display = 'none'; // CORRIGIDO
+                 formInputs.forEach(input => input.setAttribute('disabled', 'true')); 
+                 cancelButton.textContent = 'Fechar'; // Renomeado para Fechar
+             }
+            
+            // 3. Carregamento dos dados
             if (entityKey === 'clientes') {
                 try {
                     const response = await fetch(`/detalhescliente/${entityId}`);
@@ -594,6 +630,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                 } catch (err) {
                     alert(`Erro ao carregar dados do cliente: ${err.message}`);
+                    if(mode === 'view') formInputs.forEach(input => input.setAttribute('disabled', 'true'));
                 }
             } else if (entityKey === 'carros') { 
                 try {
@@ -612,6 +649,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                 } catch (err) {
                     alert(`Erro ao carregar dados do carro: ${err.message}`);
+                    if(mode === 'view') formInputs.forEach(input => input.setAttribute('disabled', 'true'));
                 }
             } else {
                 console.log(`Simulando carregamento de dados para edição de ID: ${entityId}`);
@@ -621,7 +659,8 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     window.hideForm = (viewId) => {
-        const formContainer = document.getElementById(`${viewId.replace('-view', '')}-form-container`);
+        const entityKey = viewId.replace('-view', '');
+        const formContainer = document.getElementById(`${entityKey}-form-container`);
         if (formContainer) {
              formContainer.classList.add('hidden');
         }
@@ -846,7 +885,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // Lida com formulários de simulação
     document.querySelectorAll('.crud-form:not(#clientes-form):not(#contratos-form)').forEach(form => {
         form.addEventListener('submit', (e) => {
             e.preventDefault();
@@ -882,13 +920,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 method: 'DELETE'
             });
 
-            if (response.ok) { // Sucesso (204 No Content)
+            if (response.ok) { 
                 alert(`${entityName} ID ${entityId} removido (inativado) com sucesso.`);
                 if (viewToReload) {
-                    changeView(viewToReload); // Recarrega a view
+                    changeView(viewToReload); 
                 }
             } else {
-                // Trata os erros do backend (400 = Alugado, 404 = Não encontrado)
                 let errorMsg = `Erro ${response.status} ao deletar.`;
                 
                 try {
