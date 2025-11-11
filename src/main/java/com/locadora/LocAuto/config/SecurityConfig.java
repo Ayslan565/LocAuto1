@@ -24,12 +24,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-// --- NOVAS IMPORTAÇÕES NECESSÁRIAS ---
 import org.springframework.security.web.context.DelegatingSecurityContextRepository;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.RequestAttributeSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository; 
-// --- FIM DAS NOVAS IMPORTAÇÕES ---
 
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -128,18 +126,18 @@ public class SecurityConfig {
         
         http.authorizeHttpRequests(auth -> auth
             // Libera a URL de Login, Cadastro e Estáticos
+            // **ATUALIZADO:** Uso de curingas para CSS/JS para garantir que todos os arquivos sejam liberados
             .requestMatchers(
                 "/", 
                 "/login.html", 
                 "/cadastro.html", 
-                "/login-script.js", 
-                "/cadastro.js",
-                "/styles.css",
-                "/favicon.ico", 
                 "/index.html", 
-                "/script.js",
+                "/favicon.ico", 
                 "/images/**",
-                "formHandlers.js",
+                
+                "/*.css", // Libera styles.css, login.css, cadastro.css, dashboard.css
+                "/*.js",  // Libera script.js, login-script.js, cadastro.js, formHandlers.js
+                
                 "/api/public/**"
             ).permitAll()
             
@@ -173,15 +171,13 @@ public class SecurityConfig {
             .deleteCookies("JSESSIONID") 
         );
 
-        // 4. --- CORREÇÃO DEFINITIVA DO "PISCA E EXPULSA" ---
-        // Nós precisamos criar manualmente o repositório de sessão
-        // (que o Spring usa por padrão) e entregá-lo ao nosso filtro customizado.
+        // 4. CORREÇÃO DEFINITIVA DO "PISCA E EXPULSA" (Manutenção de Sessão)
         SecurityContextRepository repo = new DelegatingSecurityContextRepository(
             new HttpSessionSecurityContextRepository(),
             new RequestAttributeSecurityContextRepository()
         );
         jsonAuthFilter.setSecurityContextRepository(repo);
-        // --- FIM DA CORREÇÃO ---
+        
 
         // 5. Adiciona o filtro customizado na posição correta
         http.addFilterAt(jsonAuthFilter, UsernamePasswordAuthenticationFilter.class);
@@ -192,8 +188,6 @@ public class SecurityConfig {
 
     /**
      * Define o Provedor de Autenticação.
-     * (Retornamos com este Bean pois ele é necessário para o AuthenticationManager
-     * encontrar o userDetailsService e o passwordEncoder).
      */
     @Bean
     public AuthenticationProvider authenticationProvider() {
