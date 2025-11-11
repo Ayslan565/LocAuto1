@@ -1,0 +1,247 @@
+/* Variáveis de Cores e Reset Básico */
+:root {
+    --primary-color: #007bff;
+    --secondary-color: #6c757d;
+    --danger-color: #dc3545;
+    --background-color: #f8f9fa;
+    --text-dark: #212529;
+    --card-bg: #ffffff;
+    --border-color: #dee2e6;
+    --text-light: #ffffff; /* Necessário para botões primários */
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Arial', sans-serif;
+}
+
+body {
+    background-color: var(--background-color);
+    color: var(--text-dark);
+}
+
+/* Estrutura de Tela */
+.screen {
+    display: none;
+    width: 100%;
+    height: 95vh;
+}
+
+.screen.active {
+    display: flex;
+}
+
+/* Utilitários */
+.hidden {
+    display: none !important;
+}
+
+/* Layout da Tela de Login */
+#login-screen {
+    flex-direction: row;
+    background: var(--card-bg);
+}
+
+.login-area {
+    width: 40%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    position: relative;
+}
+
+.login-brand {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    font-size: 2em;
+    font-weight: bold;
+    color: var(--primary-color);
+    letter-spacing: 1px;
+}
+
+/* Formulário de Login */
+.login-container {
+    background: var(--card-bg);
+    padding: 0.5rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    width: 400px;
+    max-width: 100%;
+    text-align: center;
+    border: 1px solid var(--border-color);
+}
+
+.login-container h1 {
+    color: var(--primary-color);
+    margin-bottom: 5px;
+}
+
+.login-container p {
+    color: var(--secondary-color);
+    margin-bottom: 20px;
+}
+
+/* Inputs */
+.input-group {
+    display: flex;
+    flex-direction: column; /* Ajuste para layout padrão de label acima do input */
+    align-items: center;
+    align-content: center;
+    width: 100%;
+    align-self: center;
+}
+
+.input-group label ,.input-group-with-icon label{
+    font-weight: bold;
+    font-size: 0.9em;
+}
+
+.input-group input , .input-group-with-icon input {
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 1em;
+    height: 2rem;
+    padding: 0rem 2rem 0rem 0.5rem;
+    box-sizing: border-box;
+    width: 12rem;
+}
+
+/* Ícone de Senha */
+.input-group-with-icon {
+    display: flex;
+    position: relative;
+    flex-direction: column; /* Ajuste para layout padrão de label acima do input */
+    align-items: center;
+    align-content: center;
+    align-self: center;
+    justify-content:center ;
+}
+
+.password-toggle {
+    display: flex;
+    position:absolute;
+    top:50%;
+    right: 20%;
+    flex-direction: column;
+    align-self: center;
+    color: #6c757d;
+    font-size: 0.95em;
+    z-index: 2;
+}
+
+/* Botões */
+.btn {
+    padding: 8px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s, opacity 0.3s;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn.primary {
+    background-color: var(--primary-color);
+    color: var(--text-light);
+}
+
+.btn.primary:hover {
+    background-color: #0056b3;
+}
+
+/* Link de Cadastro */
+.registration-link {
+    margin-top: 15px;
+    font-size: 0.9em;
+}
+
+.registration-link a {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.registration-link a:hover {
+    text-decoration: underline;
+}
+
+/* Slideshow de Fundo */
+.background-slideshow {
+    width: 80%;
+    height: 100%;
+    position: relative;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position:left ;
+    overflow: hidden;   
+    background: #ffffff;
+    border-radius: 16px;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    #login-screen {
+        flex-direction: column;
+    }
+    .login-area {
+        width: 100%;
+        height: 50vh;
+        position: relative;
+        z-index: 2;
+        background: rgba(255,255,255,0.8); /* Fundo translúcido sobre o slide */
+    }
+    .login-brand {
+        display: none;
+    }
+    .background-slideshow {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 1;
+    }
+    .login-container {
+        width: 90%;
+        background: #fff;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
+}
+
+
+/* --- CARROSSEL DE FUNDO --- */
+.slide-wrapper {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    background-position: left;
+    position: relative;
+    animation: slide-animation 15s infinite;
+}
+
+.background-slideshow .slide,
+.background-slideshow .slide-wrapper .slide {
+    flex: 0 0 100%;
+    width: 100%;
+    height: 100%;
+    background-size: contain;
+    background-position: left;
+    background-repeat: no-repeat;
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+@keyframes slide-animation {
+    0%, 30% { transform: translateX(0%); }
+    33.333%, 63.333% { transform: translateX(-100%); }
+    66.666%, 96.666% { transform: translateX(-200%); }
+    100% { transform: translateX(0%); }
+}
