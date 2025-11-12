@@ -43,7 +43,6 @@ public class ContratoService {
     @Autowired
     private repositorioFuncionario repositorioFuncionario; 
 
-
     private BigDecimal calcularValorTotal(Date dataInicio, Date dataFim) {
         if (dataInicio != null && dataFim != null) {
             long diff = dataFim.getTime() - dataInicio.getTime();
@@ -55,7 +54,6 @@ public class ContratoService {
     
     @Transactional
     public ContratoRespostaDTO salvar(ContratoFormDTO dto) { 
-        
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String loginFuncionario = authentication.getName();
         
@@ -66,13 +64,13 @@ public class ContratoService {
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "O usuário logado não é um funcionário válido."));
 
         Usuario cliente = repositorioUsuario.findById(dto.getIdClienteUsuario())
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cliente selecionado (ID Usuário) não encontrado."));
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cliente selecionado não encontrado."));
 
         Carro carro = repositorioCarro.findById(dto.getIdCarro())
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Carro selecionado não encontrado."));
         
         if (carro.getStatus() == null || !carro.getStatus()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "O carro selecionado não está disponível para locação.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "O carro selecionado não está disponível.");
         }
 
         Contrato contrato = new Contrato();
@@ -84,13 +82,11 @@ public class ContratoService {
         contrato.setValorTotal(calcularValorTotal(contrato.getDataInicio(), contrato.getDataFim()));
         contrato.setStatusContrato("ATIVO");
         
-        // Tranca o carro
         carro.setStatus(false);
         repositorioCarro.save(carro);
         
         Contrato contratoSalvo = repositorioContrato.save(contrato);
         
-        // Retorna o DTO de Resposta Corrigido
         return new ContratoRespostaDTO(contratoSalvo.getIdContrato(), contratoSalvo.getStatusContrato());
     }
 
@@ -98,6 +94,7 @@ public class ContratoService {
         return repositorioContrato.findById(id);
     }
 
+    // === MÉTODO ATUALIZADO PARA FILTRAR POR ID DO CLIENTE ===
     @Transactional(readOnly = true) 
     public List<ContratoDetalheDTO> listarTodos() { 
         
@@ -105,35 +102,32 @@ public class ContratoService {
         String loginUsuario = authentication.getName(); 
         
         Usuario usuarioAutenticado = repositorioUsuario.findByLogin(loginUsuario)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário autenticado não encontrado no BD."));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário autenticado não encontrado."));
         
         String role = usuarioAutenticado.getGrupoUsuario().getNomeGrupo(); 
-        Iterable<Contrato> contratos;
+        List<Contrato> contratos;
 
-        // CORREÇÃO (N+1): Usa os novos métodos otimizados do repositório
+        // Se for Gerente ou Funcionário, vê tudo
         if ("GERENTE".equals(role) || "FUNCIONARIO".equals(role)) {
             contratos = repositorioContrato.findAllCompletos();
         } 
+        // Se for Cliente, vê apenas os SEUS contratos (usando ID)
         else if ("CLIENTE".equals(role)) {
-            contratos = repositorioContrato.findByUsuarioClienteCompleto(usuarioAutenticado);
+            // Chama o novo método do repositório
+            contratos = repositorioContrato.findByUsuarioClienteId(usuarioAutenticado.getId());
         }
         else {
             contratos = List.of(); 
         }
         
-        // CORREÇÃO (Dados Órfãos):
-        // Mapeia para DTOs com checagem de segurança para dados órfãos (nulls)
-        return ((List<Contrato>) contratos).stream()
+        return contratos.stream()
             .map(contrato -> {
-                
-                // Checagem de segurança para Cliente (Usuario)
-                String clienteNome = "Cliente Inválido/Excluído";
+                String clienteNome = "Cliente Inválido";
                 if (contrato.getUsuarioCliente() != null && contrato.getUsuarioCliente().getPessoa() != null) {
                     clienteNome = contrato.getUsuarioCliente().getPessoa().getNome();
                 }
 
-                // Checagem de segurança para Carro
-                String carroNome = "Carro Inválido/Excluído";
+                String carroNome = "Carro Inválido";
                 if (contrato.getCarro() != null) {
                     carroNome = contrato.getCarro().getNome();
                 }
@@ -144,8 +138,8 @@ public class ContratoService {
                     contrato.getDataFim(),
                     contrato.getValorTotal(),
                     contrato.getStatusContrato(),
-                    clienteNome, // Nome seguro
-                    carroNome      // Nome seguro
+                    clienteNome,
+                    carroNome
                 );
             })
             .collect(Collectors.toList());
@@ -158,33 +152,20 @@ public class ContratoService {
         repositorioContrato.deleteById(id);
     }
     
-    /**
-     * NOVO MÉTODO: Conclui um contrato e libera o carro.
-     * Esta é a regra de negócio que substitui a necessidade de uma trigger.
-     */
     @Transactional
     public ContratoDetalheDTO concluirContrato(Integer id) {
-        // 1. Encontra o contrato ou falha
         Contrato contrato = repositorioContrato.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Contrato não encontrado."));
 
-        // 2. Pega o carro associado
         Carro carro = contrato.getCarro();
-        if (carro == null) {
-            // Se o carro foi excluído (dado órfão), apenas marca o contrato como concluído
-             contrato.setStatusContrato("CONCLUIDO");
-             repositorioContrato.save(contrato);
-        } else {
-             // 3. Atualiza os status
-            contrato.setStatusContrato("CONCLUIDO");
-            carro.setStatus(true); // true = Disponível
-
-            // 4. Salva as duas entidades na mesma transação
-            repositorioContrato.save(contrato);
+        if (carro != null) {
+            carro.setStatus(true); 
             repositorioCarro.save(carro);
         }
+        
+        contrato.setStatusContrato("CONCLUIDO");
+        repositorioContrato.save(contrato);
 
-        // 5. Retorna o DTO atualizado para o frontend
         return new ContratoDetalheDTO(
                 contrato.getIdContrato(),
                 contrato.getDataInicio(),
@@ -192,8 +173,8 @@ public class ContratoService {
                 contrato.getValorTotal(),
                 contrato.getStatusContrato(),
                 (contrato.getUsuarioCliente() != null && contrato.getUsuarioCliente().getPessoa() != null) 
-                    ? contrato.getUsuarioCliente().getPessoa().getNome() : "Cliente Excluído",
-                (contrato.getCarro() != null) ? contrato.getCarro().getNome() : "Carro Excluído"
+                    ? contrato.getUsuarioCliente().getPessoa().getNome() : "Excluído",
+                (contrato.getCarro() != null) ? contrato.getCarro().getNome() : "Excluído"
         );
     }
 }

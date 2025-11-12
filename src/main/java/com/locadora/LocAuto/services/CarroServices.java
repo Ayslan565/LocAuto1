@@ -1,10 +1,7 @@
 package com.locadora.LocAuto.services;
 
 import com.locadora.LocAuto.Model.Carro;
-// =================================================================
-// 1. CORREÇÃO: Imports com 'R' maiúsculo
-// =================================================================
-import com.locadora.LocAuto.repositorio.RepositorioCarro; 
+import com.locadora.LocAuto.repositorio.RepositorioCarro;
 import com.locadora.LocAuto.repositorio.RepositorioContrato;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -16,9 +13,6 @@ import java.util.Optional;
 @Service
 public class CarroServices {
 
-    // =================================================================
-    // 2. CORREÇÃO: Tipos de variável com 'R' maiúsculo
-    // =================================================================
     @Autowired
     private RepositorioCarro repositorioCarro;
 
@@ -46,11 +40,17 @@ public class CarroServices {
         return repositorioCarro.findById(id);
     }
 
-    public Iterable<Carro> listarTodos(String placa) {
-        // Usa os métodos que só buscam carros ATIVOS (ativo=true)
+    // ATUALIZADO: Aceita placa OU nome para filtragem
+    public Iterable<Carro> listarTodos(String placa, String nome) {
+        // 1. Filtro por Placa
         if (placa != null && !placa.isBlank()) {
             return repositorioCarro.findByPlacaStartsWithAndAtivoIsTrue(placa);
         }
+        // 2. Filtro por Nome (Modelo) - Adicionado para permitir busca por nome
+        if (nome != null && !nome.isBlank()) {
+            return repositorioCarro.findByNomeContainingIgnoreCaseAndAtivoIsTrue(nome);
+        }
+        // 3. Sem filtro: retorna todos os ativos
         return repositorioCarro.findAllByAtivoIsTrue();
     }
 
@@ -84,12 +84,8 @@ public class CarroServices {
             );
         }
 
-        // Se passar nas duas verificações, inativa o carro
+        // Se passar nas duas verificações, inativa o carro (Exclusão Lógica)
         carro.setAtivo(false); 
         repositorioCarro.save(carro); 
-    }
-
-    public void adicionarInfCarro(Carro carro) {
-        // Método placeholder
     }
 }

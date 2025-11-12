@@ -133,6 +133,7 @@ public class SecurityConfig {
                 "/cadastro.html", 
                 "/index.html", 
                 "/favicon.ico", 
+                "/script1.js", 
                 "/images/**",
                 
                 "/*.css", // Libera styles.css, login.css, cadastro.css, dashboard.css

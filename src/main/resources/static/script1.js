@@ -1,13 +1,6 @@
-// =================================================================
-// ARQUIVO: script1.js (Lógica Principal do Frontend)
-// =================================================================
-
 let currentUserRole = null;
 let graficoFrota = null;
 
-/**
- * Função para concluir um contrato (Apenas Gerente/Funcionário)
- */
 async function handleConcluirContrato(checkboxElement, contratoId) {
     const row = checkboxElement.closest('tr');
     const statusDesejado = checkboxElement.checked;
@@ -52,9 +45,7 @@ async function handleConcluirContrato(checkboxElement, contratoId) {
     }
 }
 
-/**
- * Calcula o valor total estimado da locação no formulário
- */
+
 window.calcularValorLocacao = () => {
     const inicioStr = document.getElementById('contrato-data-inicio').value;
     const fimStr = document.getElementById('contrato-data-fim').value;
@@ -89,13 +80,9 @@ window.calcularValorLocacao = () => {
     }
 };
 
-/**
- * Carrega os KPIs e Gráficos do Dashboard
- */
+
 async function loadDashboardData() {
     const kpiClientesCard = document.getElementById('kpi-clientes-card');
-    
-    // Oculta card de clientes para o perfil CLIENTE
     if (currentUserRole === 'CLIENTE') {
         if (kpiClientesCard) {
             kpiClientesCard.style.display = 'none';
@@ -157,9 +144,6 @@ function renderDashboardCharts(data) {
     });
 }
 
-/**
- * Renderiza a view de Contratos
- */
 async function renderContratosView() {
     const showNewButton = (currentUserRole === 'GERENTE' || currentUserRole === 'FUNCIONARIO');
 
@@ -203,9 +187,6 @@ async function renderContratosView() {
     }
 }
 
-/**
- * Renderiza views genéricas (Clientes, Funcionários, Carros)
- */
 async function renderDataView(viewId, entityName, endpoint, filterParamName = null) {
     const view = document.getElementById(viewId);
     const showNewButton = (currentUserRole === 'GERENTE' || currentUserRole === 'FUNCIONARIO');
@@ -293,9 +274,7 @@ async function fetchDataAndRenderTable(viewId, endpoint, filterParamName, search
     }
 }
 
-/**
- * Gera o cabeçalho da tabela baseado na Entidade e no Perfil
- */
+
 function getTableHeader(entityName) {
     if (entityName === 'Cliente') {
         return `<tr><th>ID</th><th>Nome</th><th>CPF</th><th>Telefone</th><th>Email</th><th>Ações</th></tr>`;
@@ -303,13 +282,11 @@ function getTableHeader(entityName) {
         return `<tr><th>ID</th><th>Nome</th><th>Cargo</th><th>Admissão</th><th>Salário</th><th>Ações</th></tr>`;
     } else if (entityName === 'Carro') {
          if (currentUserRole === 'CLIENTE') {
-             // Cliente não vê a placa
              return `<tr><th>ID</th><th>Modelo</th><th>Ano</th><th>Cor</th><th>KM</th><th>Status</th><th>Ações</th></tr>`;
          }
          return `<tr><th>ID</th><th>Modelo</th><th>Placa</th><th>Ano</th><th>Cor</th><th>KM</th><th>Status</th><th>Ações</th></tr>`;
     } else if (entityName === 'Contrato') {
          if (currentUserRole === 'CLIENTE') {
-             // Cliente não vê coluna "Cliente" (é redundante)
              return `<tr><th>ID Contrato</th><th>Carro</th><th>Início</th><th>Fim Prev.</th><th>Valor Total</th><th>Status</th><th>Ações</th></tr>`;
          }
          return `<tr><th>ID Contrato</th><th>Cliente</th><th>Carro</th><th>Início</th><th>Fim Prev.</th><th>Valor Total</th><th>Status</th><th>Ações</th></tr>`;
@@ -317,9 +294,6 @@ function getTableHeader(entityName) {
     return '';
 }
 
-/**
- * Gera as linhas da tabela
- */
 function getTableRows(entityName, data) {
     entityName = entityName.replace('s-view', '').replace('s', '');
 
@@ -335,13 +309,12 @@ function getTableRows(entityName, data) {
         
         actions = ''; 
         
-        // Botão VISUALIZAR (Olhinho) - Disponível para Cliente, Funcionário e Carro
+        // Botão VISUALIZAR e EDITAR para Funcionários
         if (entityName === 'cliente' || entityName === 'funcionario' || entityName === 'carro') {
             const idParaAcao = entityName === 'cliente' ? item.id_cliente : entityId;
             actions += `<button class="btn small view-details" onclick="showForm('${entityName}s-view', 'view', ${idParaAcao})"><i class="fas fa-eye"></i></button>`;
         }
         
-        // Botão EDITAR - Disponível para Gerente e Funcionário
         if (currentUserRole === 'GERENTE' || currentUserRole === 'FUNCIONARIO') {
             if (entityName !== 'contrato') {
                  const idParaAcao = entityName === 'cliente' ? item.id_cliente : entityId;
@@ -349,18 +322,15 @@ function getTableRows(entityName, data) {
             }
         }
         
-        // Botão DELETAR - Apenas Gerente
         if (currentUserRole === 'GERENTE') {
             if (entityName !== 'contrato') {
                 const idParaAcao = entityName === 'cliente' ? item.id_cliente : entityId;
                 if (actions) actions += ' '; 
-                // Ajuste no nome da entidade para a função de delete
                 let deleteName = entityName === 'funcionário' ? 'funcionario' : entityName;
                 actions += `<button class="btn small delete" onclick="confirmDelete(${idParaAcao}, '${deleteName}')"><i class="fas fa-trash"></i></button>`;
             }
         }
 
-        // Fallback para Cliente visualizando Carro
         if (actions === '') {
             if (entityName === 'carro' && currentUserRole === 'CLIENTE') {
                 const statusTxt = item.status ? 'Disponível' : 'Alugado';
@@ -387,7 +357,6 @@ function getTableRows(entityName, data) {
         
         } else if (entityName === 'carro') {
             const statusTxt = item.status ? 'Disponível' : 'Alugado';
-            
             const statusColor = item.status ? 'var(--success-color)' : 'var(--danger-color)';
             const statusStyle = `style="color: ${statusColor}; font-weight: bold;"`;
             
@@ -414,27 +383,9 @@ function getTableRows(entityName, data) {
              const valor = item.valorTotal || 0;
              const valorFormatado = valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
              const dtInicio = item.dataInicio ? new Date(item.dataInicio).toLocaleDateString('pt-BR') : 'N/D';
-
+             
              let rowStyle = '';
-             let dataFimObj = null;
-
-             const today = new Date();
-             today.setHours(0, 0, 0, 0);
-             
              const statusTxt = item.statusContrato || 'ATIVO';
-
-             if (item.dataFim) {
-                 dataFimObj = new Date(item.dataFim);
-                 dataFimObj.setHours(0, 0, 0, 0); 
-
-                 if (statusTxt !== 'CONCLUIDO' && dataFimObj.getTime() < today.getTime()) {
-                     rowStyle = 'style="background-color: #f8d7da;"'; 
-                 } 
-                 else if (statusTxt !== 'CONCLUIDO' && dataFimObj.getTime() === today.getTime()) {
-                     rowStyle = 'style="background-color: #fff3cd;"'; 
-                 }
-             }
-             
              const dtFim = item.dataFim ? new Date(item.dataFim).toLocaleDateString('pt-BR') : 'N/D';
              
              if (currentUserRole === 'GERENTE' || currentUserRole === 'FUNCIONARIO') {
@@ -450,28 +401,12 @@ function getTableRows(entityName, data) {
              }
              
              if (currentUserRole === 'CLIENTE') {
-                 cells = `
-                    <td>${item.idContrato}</td>
-                    <td>${item.carroNome || 'N/D'}</td>
-                    <td>${dtInicio}</td>
-                    <td>${dtFim}</td>
-                    <td>${valorFormatado}</td>
-                    <td>${statusTxt}</td>
-                 `;
+                 cells = `<td>${item.idContrato}</td><td>${item.carroNome || 'N/D'}</td><td>${dtInicio}</td><td>${dtFim}</td><td>${valorFormatado}</td><td>${statusTxt}</td>`;
              } else {
-                 cells = `
-                    <td>${item.idContrato}</td>
-                    <td>${item.clienteNome || 'N/D'}</td>
-                    <td>${item.carroNome || 'N/D'}</td>
-                    <td>${dtInicio}</td>
-                    <td>${dtFim}</td>
-                    <td>${valorFormatado}</td>
-                    <td>${statusTxt}</td>
-                 `;
+                 cells = `<td>${item.idContrato}</td><td>${item.clienteNome || 'N/D'}</td><td>${item.carroNome || 'N/D'}</td><td>${dtInicio}</td><td>${dtFim}</td><td>${valorFormatado}</td><td>${statusTxt}</td>`;
              }
              
              html += `<tr ${rowStyle}>${cells}<td>${actions}</td></tr>`;
-             
              return; 
         }
         
@@ -479,10 +414,6 @@ function getTableRows(entityName, data) {
     });
     return html;
 }
-
-// =================================================================
-// CONFIGURAÇÃO INICIAL (DOMContentLoaded)
-// =================================================================
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -493,8 +424,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const response = await fetch('/api/credenciais/perfil'); 
             if (!response.ok) throw new Error('Não autenticado');
             const roles = await response.json();
-            if (roles.length === 0) throw new Error('Perfil não encontrado');
-
             const role = roles[0];
             currentUserRole = role; 
 
@@ -505,7 +434,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const navContratos = document.getElementById('nav-contratos');
             const userInfoName = document.getElementById('user-info-name');
 
-            // Esconde tudo inicialmente
             if (navSectionMgmt) navSectionMgmt.style.display = 'none';
             if (navClientes) navClientes.style.display = 'none';
             if (navFuncionarios) navFuncionarios.style.display = 'none';
@@ -513,7 +441,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (navContratos) navContratos.style.display = 'none';
             if (userInfoName) userInfoName.textContent = role;
 
-            // Lógica de exibição baseada no papel
             if (role === 'CLIENTE') {
                 navSectionMgmt.style.display = 'block';
                 navCarros.style.display = 'flex';
@@ -532,9 +459,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 navCarros.style.display = 'flex';
                 navContratos.style.display = 'flex';
             }
-            
             loadDashboardData();
-
         } catch (error) {
             console.error('Falha ao configurar menu dinâmico:', error);
             window.location.href = '/login.html';
@@ -603,37 +528,28 @@ document.addEventListener('DOMContentLoaded', () => {
         if (errorEl) errorEl.classList.add('hidden');
         form.reset(); 
 
-        // MODO: CRIAR
         if (mode === 'create') {
             formTitleSpan.textContent = 'Cadastrar';
             if (submitButton) submitButton.style.display = 'inline-flex'; 
             formInputs.forEach(input => input.removeAttribute('disabled'));
-            
             cancelButton.textContent = 'Cancelar'; 
-            
-            if (entityKey === 'contratos') {
-                loadContratoFormData();
-            }
+            if (entityKey === 'contratos') loadContratoFormData();
             formContainer.classList.remove('hidden');
             
-        } 
-        // MODO: EDITAR ou VISUALIZAR
-        else if (mode === 'edit' || mode === 'view') {
+        } else if (mode === 'edit' || mode === 'view') {
             
             if (mode === 'edit') {
                  formTitleSpan.textContent = 'Editar';
                  if (submitButton) submitButton.style.display = 'inline-flex'; 
                  formInputs.forEach(input => input.removeAttribute('disabled'));
                  cancelButton.textContent = 'Cancelar';
-             } else { // mode === 'view'
+             } else { 
                  formTitleSpan.textContent = 'Visualizar (Somente Leitura)';
-                 // CORREÇÃO CRÍTICA: Esconde o botão Salvar no modo 'view'
                  if (submitButton) submitButton.style.display = 'none'; 
                  formInputs.forEach(input => input.setAttribute('disabled', 'true')); 
                  cancelButton.textContent = 'Fechar'; 
              }
             
-            // Carregamento de Dados - CLIENTES
             if (entityKey === 'clientes') {
                 try {
                     const response = await fetch(`/detalhescliente/${entityId}`);
@@ -646,9 +562,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     document.getElementById('cliente-cpf').value = cliente.pessoa.CPF; 
                     document.getElementById('cliente-email').value = cliente.pessoa.email;
                     
-                    if (cliente.pessoa.data_nasc) {
-                        document.getElementById('cliente-data-nasc').value = new Date(cliente.pessoa.data_nasc).toISOString().split('T')[0];
-                    }
+                    if (cliente.pessoa.data_nasc) document.getElementById('cliente-data-nasc').value = new Date(cliente.pessoa.data_nasc).toISOString().split('T')[0];
                     
                     document.getElementById('cliente-telefone1').value = cliente.pessoa.telefone1;
                     document.getElementById('cliente-telefone2').value = cliente.pessoa.telefone2;
@@ -659,13 +573,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     document.getElementById('cliente-complemento').value = cliente.pessoa.complemento;
 
                     formContainer.classList.remove('hidden');
-                    
                 } catch (err) {
-                    alert(`Erro ao carregar dados do cliente: ${err.message}`);
-                    if(mode === 'view') formInputs.forEach(input => input.setAttribute('disabled', 'true'));
+                    alert(`Erro: ${err.message}`);
                 }
             } 
-            // Carregamento de Dados - FUNCIONÁRIOS
             else if (entityKey === 'funcionarios') { 
                 try {
                     const response = await fetch(`/detalhesfuncionario/${entityId}`);
@@ -673,9 +584,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const func = await response.json();
                     
                     document.getElementById('funcionario-id').value = func.idFuncionarios;
-                    if (func.dataAdmissao) {
-                        document.getElementById('funcionario-dataAdmissao').value = new Date(func.dataAdmissao).toISOString().split('T')[0];
-                    }
+                    if (func.dataAdmissao) document.getElementById('funcionario-dataAdmissao').value = new Date(func.dataAdmissao).toISOString().split('T')[0];
                     document.getElementById('funcionario-cargo').value = func.cargo;
                     document.getElementById('funcionario-salario').value = func.salario;
 
@@ -684,9 +593,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     document.getElementById('funcionario-cpf').value = func.pessoa.CPF; 
                     document.getElementById('funcionario-email').value = func.pessoa.email;
                     
-                    if (func.pessoa.data_nasc) {
-                        document.getElementById('funcionario-data-nasc').value = new Date(func.pessoa.data_nasc).toISOString().split('T')[0];
-                    }
+                    if (func.pessoa.data_nasc) document.getElementById('funcionario-data-nasc').value = new Date(func.pessoa.data_nasc).toISOString().split('T')[0];
                     
                     document.getElementById('funcionario-telefone1').value = func.pessoa.telefone1;
                     document.getElementById('funcionario-telefone2').value = func.pessoa.telefone2;
@@ -697,13 +604,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     document.getElementById('funcionario-complemento').value = func.pessoa.complemento;
 
                     formContainer.classList.remove('hidden');
-                    
                 } catch (err) {
-                    alert(`Erro ao carregar dados do funcionário: ${err.message}`);
-                    if(mode === 'view') formInputs.forEach(input => input.setAttribute('disabled', 'true'));
+                    alert(`Erro: ${err.message}`);
                 }
             } 
-            // Carregamento de Dados - CARROS
             else if (entityKey === 'carros') { 
                 try {
                     const response = await fetch(`/detalhesCarros/${entityId}`);
@@ -718,14 +622,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     document.getElementById('carro-km').value = carro.quilometragem;
                     
                     formContainer.classList.remove('hidden');
-                    
                 } catch (err) {
-                    alert(`Erro ao carregar dados do carro: ${err.message}`);
-                    if(mode === 'view') formInputs.forEach(input => input.setAttribute('disabled', 'true'));
+                    alert(`Erro: ${err.message}`);
                 }
-            } else {
-                console.log(`Simulando carregamento de dados para edição de ID: ${entityId}`);
-                formContainer.classList.remove('hidden');
             }
         }
     };
@@ -733,30 +632,24 @@ document.addEventListener('DOMContentLoaded', () => {
     window.hideForm = (viewId) => {
         const entityKey = viewId.replace('-view', '');
         const formContainer = document.getElementById(`${entityKey}-form-container`);
-        if (formContainer) {
-             formContainer.classList.add('hidden');
-        }
+        if (formContainer) formContainer.classList.add('hidden');
     };
 
     async function loadContratoFormData() {
         const clienteSelect = document.getElementById('contrato-select-cliente');
         const carroSelect = document.getElementById('contrato-select-carro');
-        const errorEl = document.getElementById('contrato-form-error');
         
         document.getElementById('contrato-valor-total').value = '0,00';
         document.getElementById('contrato-data-inicio').value = '';
         document.getElementById('contrato-data-fim').value = '';
 
         try {
-            clienteSelect.innerHTML = '<option value="">Carregando clientes...</option>';
-            carroSelect.innerHTML = '<option value="">Carregando carros...</option>';
+            clienteSelect.innerHTML = '<option value="">Carregando...</option>';
+            carroSelect.innerHTML = '<option value="">Carregando...</option>';
             
             const clienteResponse = await fetch('/detalhescliente/listar');
-            if (!clienteResponse.ok) throw new Error('Falha ao buscar clientes.');
             const clientes = await clienteResponse.json();
-            
             clienteSelect.innerHTML = '<option value="">Selecione um cliente...</option>';
-            
             clientes.forEach(cliente => {
                 const option = document.createElement('option');
                 option.value = cliente.id_cliente; 
@@ -764,11 +657,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 clienteSelect.appendChild(option);
             });
 
-
             const carroResponse = await fetch('/detalhesCarros/listar');
-            if (!carroResponse.ok) throw new Error('Falha ao buscar carros.');
             const carros = await carroResponse.json();
-            
             carroSelect.innerHTML = '<option value="">Selecione um carro...</option>';
             carros.forEach(carro => {
                 if (carro.status === true) { 
@@ -778,24 +668,20 @@ document.addEventListener('DOMContentLoaded', () => {
                     carroSelect.appendChild(option);
                 }
             });
-
         } catch (error) {
-            console.error('Falha ao carregar dados do formulário de contrato:', error);
-            errorEl.textContent = 'Erro ao carregar dados. ' + error.message;
-            errorEl.classList.remove('hidden');
+            console.error('Erro ao carregar dados:', error);
         }
     }
 
-
+    // Handlers de Submit
     window.handleCarroSubmit = async (event) => {
         event.preventDefault();
         const errorEl = document.getElementById('carro-form-error');
         errorEl.classList.add('hidden');
-
         const carroId = document.getElementById('carro-id').value; 
         const isUpdate = !!carroId; 
-
         let currentStatus = true;
+
         if (isUpdate) {
             try {
                 const response = await fetch(`/detalhesCarros/${carroId}`);
@@ -803,9 +689,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const existingCarro = await response.json();
                     currentStatus = existingCarro.status; 
                 }
-            } catch (error) {
-                console.warn('Falha ao buscar status atual do carro. Assumindo true.', error);
-            }
+            } catch (e) {}
         }
 
         const carro = {
@@ -820,7 +704,6 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const method = isUpdate ? 'PUT' : 'POST';
         const endpoint = isUpdate ? `/detalhesCarros/${carroId}` : '/detalhesCarros/add';
-        const successMessage = isUpdate ? 'Carro atualizado com sucesso!' : 'Carro cadastrado com sucesso!';
 
         try {
             const response = await fetch(endpoint, {
@@ -828,31 +711,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(carro)
             });
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                let msg = `Erro no servidor (${response.status})`;
-                try {
-                    const errorData = JSON.parse(errorText);
-                    msg = errorData.message || errorData.error || msg;
-                } catch (e) {
-                    const statusMatch = errorText.match(/\[(.*?)\]/);
-                    if (statusMatch && statusMatch[1]) {
-                        msg = statusMatch[1];
-                    } else if (errorText.trim()) {
-                        msg = errorText.trim();
-                    }
-                }
-                throw new Error(msg);
-            }
-
-            alert(successMessage);
+            if (!response.ok) throw new Error('Erro ao salvar carro');
+            alert('Sucesso!');
             hideForm('carros-view');
             changeView('carros-view'); 
-
         } catch (error) {
-            console.error(`Falha ao ${isUpdate ? 'atualizar' : 'cadastrar'} carro:`, error);
-            errorEl.textContent = `${error.message}`;
+            errorEl.textContent = error.message;
             errorEl.classList.remove('hidden');
         }
     };
@@ -861,27 +725,22 @@ document.addEventListener('DOMContentLoaded', () => {
         event.preventDefault();
         const errorEl = document.getElementById('cliente-form-error');
         errorEl.classList.add('hidden');
-
         const pessoaId = document.getElementById('cliente-pessoa-id').value;
-        
-        const getLocalDate = (id) => {
-            const val = document.getElementById(id).value;
-            return val ? val : null;
-        };
+        const getVal = (id) => document.getElementById(id).value || null;
 
         const pessoa = {
             id: pessoaId,
-            nome: document.getElementById('cliente-nome').value,
-            CPF: document.getElementById('cliente-cpf').value,
-            email: document.getElementById('cliente-email').value,
-            data_nasc: getLocalDate('cliente-data-nasc'),
-            telefone1: document.getElementById('cliente-telefone1').value,
-            telefone2: document.getElementById('cliente-telefone2').value,
-            cep: document.getElementById('cliente-cep').value,
-            uf: document.getElementById('cliente-uf').value,
-            endereco: document.getElementById('cliente-endereco').value,
-            municipio: document.getElementById('cliente-municipio').value,
-            complemento: document.getElementById('cliente-complemento').value
+            nome: getVal('cliente-nome'),
+            CPF: getVal('cliente-cpf'),
+            email: getVal('cliente-email'),
+            data_nasc: getVal('cliente-data-nasc'),
+            telefone1: getVal('cliente-telefone1'),
+            telefone2: getVal('cliente-telefone2'),
+            cep: getVal('cliente-cep'),
+            uf: getVal('cliente-uf'),
+            endereco: getVal('cliente-endereco'),
+            municipio: getVal('cliente-municipio'),
+            complemento: getVal('cliente-complemento')
         };
 
         try {
@@ -890,19 +749,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(pessoa)
             });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || `Erro no servidor (${response.status})`);
-            }
-
-            alert('Cliente atualizado com sucesso!');
+            if (!response.ok) throw new Error('Erro ao atualizar cliente');
+            alert('Sucesso!');
             hideForm('clientes-view');
             changeView('clientes-view'); 
-
         } catch (error) {
-            console.error('Falha ao atualizar cliente:', error);
-            errorEl.textContent = `❌ ${error.message}`;
+            errorEl.textContent = error.message;
             errorEl.classList.remove('hidden');
         }
     };
@@ -911,35 +763,30 @@ document.addEventListener('DOMContentLoaded', () => {
         event.preventDefault();
         const errorEl = document.getElementById('funcionario-form-error');
         errorEl.classList.add('hidden');
-
         const funcionarioId = document.getElementById('funcionario-id').value;
         const pessoaId = document.getElementById('funcionario-pessoa-id').value;
-        
-        const getLocalDate = (id) => {
-            const val = document.getElementById(id).value;
-            return val ? val : null;
-        };
+        const getVal = (id) => document.getElementById(id).value || null;
 
         const pessoa = {
             id: pessoaId,
-            nome: document.getElementById('funcionario-nome').value,
-            CPF: document.getElementById('funcionario-cpf').value,
-            email: document.getElementById('funcionario-email').value,
-            data_nasc: getLocalDate('funcionario-data-nasc'),
-            telefone1: document.getElementById('funcionario-telefone1').value,
-            telefone2: document.getElementById('funcionario-telefone2').value,
-            cep: document.getElementById('funcionario-cep').value,
-            uf: document.getElementById('funcionario-uf').value,
-            endereco: document.getElementById('funcionario-endereco').value,
-            municipio: document.getElementById('funcionario-municipio').value,
-            complemento: document.getElementById('funcionario-complemento').value
+            nome: getVal('funcionario-nome'),
+            CPF: getVal('funcionario-cpf'),
+            email: getVal('funcionario-email'),
+            data_nasc: getVal('funcionario-data-nasc'),
+            telefone1: getVal('funcionario-telefone1'),
+            telefone2: getVal('funcionario-telefone2'),
+            cep: getVal('funcionario-cep'),
+            uf: getVal('funcionario-uf'),
+            endereco: getVal('funcionario-endereco'),
+            municipio: getVal('funcionario-municipio'),
+            complemento: getVal('funcionario-complemento')
         };
 
         const dto = {
             pessoa: pessoa,
-            cargo: document.getElementById('funcionario-cargo').value,
-            salario: parseFloat(document.getElementById('funcionario-salario').value),
-            data_admissao: getLocalDate('funcionario-dataAdmissao')
+            cargo: getVal('funcionario-cargo'),
+            salario: parseFloat(getVal('funcionario-salario')),
+            data_admissao: getVal('funcionario-dataAdmissao')
         };
 
         try {
@@ -948,19 +795,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(dto)
             });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || `Erro no servidor (${response.status})`);
-            }
-
-            alert('Funcionário atualizado com sucesso!');
+            if (!response.ok) throw new Error('Erro ao atualizar funcionário');
+            alert('Sucesso!');
             hideForm('funcionarios-view');
             changeView('funcionarios-view'); 
-
         } catch (error) {
-            console.error('Falha ao atualizar funcionário:', error);
-            errorEl.textContent = `❌ ${error.message}`;
+            errorEl.textContent = error.message;
             errorEl.classList.remove('hidden');
         }
     };
@@ -969,15 +809,11 @@ document.addEventListener('DOMContentLoaded', () => {
         event.preventDefault();
         const errorEl = document.getElementById('contrato-form-error');
         errorEl.classList.add('hidden');
-        
-        const getLocalDate = (id) => {
-            const val = document.getElementById(id).value;
-            return val ? val : null;
-        };
+        const getVal = (id) => document.getElementById(id).value || null;
         
         const contratoDTO = {
-            dataInicio: getLocalDate('contrato-data-inicio'),
-            dataFim: getLocalDate('contrato-data-fim'),
+            dataInicio: getVal('contrato-data-inicio'),
+            dataFim: getVal('contrato-data-fim'),
             idClienteUsuario: parseInt(document.getElementById('contrato-select-cliente').value, 10),
             idCarro: parseInt(document.getElementById('contrato-select-carro').value, 10)
         };
@@ -988,51 +824,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(contratoDTO)
             });
-
             if (!response.ok) {
-                const errorText = await response.text();
-                try {
-                    const errorData = JSON.parse(errorText);
-                    let msg = errorData.message || errorData.error || `Erro no servidor (${response.status})`;
-                    if (errorData.message && errorData.message.includes("O carro selecionado não está disponível")) {
-                        msg = "O carro selecionado não está disponível para locação.";
-                    }
-                    throw new Error(msg);
-                } catch(e) {
-                    throw new Error(errorText || `Erro no servidor (${response.status})`);
-                }
+                const text = await response.text();
+                throw new Error(text.includes('disponível') ? 'Carro indisponível' : 'Erro ao criar contrato');
             }
-
-            alert('Contrato criado com sucesso!');
+            alert('Sucesso!');
             hideForm('contratos-view');
             changeView('contratos-view');
             loadDashboardData(); 
-
         } catch (error) {
-            console.error('Falha ao criar contrato:', error);
-            errorEl.textContent = `❌ ${error.message}`;
+            errorEl.textContent = error.message;
             errorEl.classList.remove('hidden');
         }
     };
 
-    document.querySelectorAll('.crud-form:not(#clientes-form):not(#contratos-form):not(#funcionarios-form)').forEach(form => {
-        form.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const formContainerId = form.parentNode.parentNode.id;
-            const viewId = formContainerId.replace('-form-container', '-view');
-            const entityKey = form.dataset.entity;
-            
-            alert(`Simulação de Criação/Edição de ${entityKey}:\n(API de POST/PUT real precisa ser implementada aqui)`);
-            
-            hideForm(viewId);
-            changeView(viewId); 
-        });
-    });
-
     window.confirmDelete = async (entityId, entityName) => {
-        if (!confirm(`Tem certeza que deseja remover o(a) ${entityName} ID ${entityId}?`)) {
-            return;
-        }
+        if (!confirm(`Confirmar exclusão?`)) return;
 
         let endpoint = '';
         let viewToReload = '';
@@ -1040,67 +847,27 @@ document.addEventListener('DOMContentLoaded', () => {
         if (entityName === 'carro') {
             endpoint = `/detalhesCarros/${entityId}`;
             viewToReload = 'carros-view';
-        } 
-        else if (entityName === 'funcionario') { 
+        } else if (entityName === 'funcionario') { 
             endpoint = `/detalhesfuncionario/${entityId}`;
             viewToReload = 'funcionarios-view';
-        } 
-        else {
-            alert(`Ainda não sei deletar: ${entityName}`);
+        } else {
             return;
         }
 
         try {
-            const response = await fetch(endpoint, {
-                method: 'DELETE'
-            });
-
+            const response = await fetch(endpoint, { method: 'DELETE' });
             if (response.ok) { 
-                alert(`${entityName} ID ${entityId} removido com sucesso.`);
-                if (viewToReload) {
-                    changeView(viewToReload); 
-                }
+                alert('Removido com sucesso.');
+                changeView(viewToReload); 
             } else {
-                let errorMsg = `Erro ${response.status} ao deletar.`;
-                
-                try {
-                    const errorText = await response.text();
-                    
-                    if (errorText) {
-                        const errorData = JSON.parse(errorText);
-                        errorMsg = errorData.message || errorData.error || errorMsg;
-                    } else {
-                        if (response.status === 400) {
-                            if (entityName === 'carro') {
-                                errorMsg = "Este carro está alugado ou vinculado a contratos e não pode ser excluído.";
-                            } else if (entityName === 'funcionario') {
-                                errorMsg = "Este funcionário está vinculado a contratos e não pode ser excluído.";
-                            }
-                        } else if (response.status === 404) {
-                            errorMsg = "Registro não encontrado.";
-                        }
-                    }
-
-                } catch(e) {
-                    if (response.status === 400) {
-                        errorMsg = "O item está vinculado a outros registros e não pode ser excluído.";
-                    } else if (response.status === 404) {
-                        errorMsg = "Item não encontrado.";
-                    }
-                }
-                
-                throw new Error(errorMsg);
+                alert('Não foi possível remover (verifique vínculos).');
             }
-
         } catch (error) {
-            console.error(`Falha ao deletar ${entityName}:`, error);
-            alert(`ERRO: ${error.message}`);
+            console.error(error);
         }
     };
     
     window.logout = () => {
-        if (confirm("Deseja realmente sair do sistema?")) {
-             window.location.href = '/logout'; 
-        }
+        if (confirm("Sair do sistema?")) window.location.href = '/logout'; 
     };
 });

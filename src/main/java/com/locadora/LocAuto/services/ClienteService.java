@@ -9,25 +9,31 @@ import org.springframework.dao.DataIntegrityViolationException;
 
 import com.locadora.LocAuto.Model.Cliente;
 import com.locadora.LocAuto.Model.Pessoa;
+import com.locadora.LocAuto.Model.Usuario; // Importante para pegar o email correto
 import com.locadora.LocAuto.dto.ClienteCadastroDTO; 
+import com.locadora.LocAuto.repositorio.repositorioCliente; 
+import com.locadora.LocAuto.repositorio.repositorioUsuario; // Importante para buscar o login
 
 import java.time.LocalDate;
 import java.time.Period;
 import java.time.ZoneId;
 import java.util.Date;
-import java.util.Optional; // ADICIONADO: Necessário para buscarPorId
+import java.util.Optional; 
 
 @Service
 public class ClienteService {
 
     @Autowired
-    private com.locadora.LocAuto.repositorio.repositorioCliente repositorioCliente; 
+    private repositorioCliente repositorioCliente; 
     
     @Autowired
     private PessoasServices pessoasServices;
     
     @Autowired
     private UsuarioService usuarioService;
+
+    @Autowired
+    private repositorioUsuario repositorioUsuario; // Injeção necessária para corrigir o email
 
     /**
      * Valida se a pessoa atingiu a maioridade (18 anos).
@@ -71,7 +77,6 @@ public class ClienteService {
         // 0.5. Validação de Regra de Negócio (Maioridade)
         validarMaioridade(pessoa.getData_nasc());
 
-
         Pessoa pessoaSalva;
         Cliente clienteSalvo;
         
@@ -110,15 +115,32 @@ public class ClienteService {
         return clienteSalvo;
     }
 
+    /**
+     * Lista todos os clientes.
+     * (Revertido para não filtrar por CPF, mas mantém a correção do email de login)
+     */
     public Iterable<Cliente> listarClientes() {
-        return repositorioCliente.findAll();
+        // 1. Busca todos os clientes
+        Iterable<Cliente> clientes = repositorioCliente.findAll();
+
+        // 2. Itera sobre a lista para substituir o email da Pessoa pelo Login do Usuário
+        // (Isso garante que na tabela apareça o email de login correto da tb_usuarios)
+        for (Cliente cliente : clientes) {
+            Pessoa pessoa = cliente.getPessoa();
+            if (pessoa != null) {
+                Optional<Usuario> usuarioOpt = repositorioUsuario.findByPessoa(pessoa);
+                if (usuarioOpt.isPresent()) {
+                    // Define o email visual da pessoa como o login do usuário
+                    pessoa.setEmail(usuarioOpt.get().getLogin());
+                }
+            }
+        }
+
+        return clientes;
     }
     
     /**
      * Busca um Cliente pelo ID usando o repositório.
-     * Necessário para o endpoint GET /{id} e para o formulário de edição no frontend.
-     * @param id O ID do Cliente.
-     * @return Um Optional contendo o Cliente, se encontrado.
      */
     public Optional<Cliente> buscarPorId(Integer id) {
         return repositorioCliente.findById(id);

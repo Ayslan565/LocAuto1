@@ -270,6 +270,98 @@
         </div>
         
     </div>
+    <div id="funcionarios-form-container" class="form-overlay hidden">
+            <div class="form-modal">
+                <h4><span id="funcionarios-form-title">Editar</span> Funcionário</h4>
+                <form id="funcionarios-form" onsubmit="handleFuncionarioSubmit(event)" data-entity="Funcionario">
+                    <input type="hidden" id="funcionario-id">
+                    <input type="hidden" id="funcionario-pessoa-id">
+                    
+                    <div class="form-section-title">Dados Pessoais</div>
+                    <div class="form-row">
+                        <div class="input-group">
+                            <label for="funcionario-nome">Nome Completo</label>
+                            <input type="text" id="funcionario-nome" required>
+                        </div>
+                        <div class="input-group">
+                            <label for="funcionario-cpf">CPF</label>
+                            <input type="text" id="funcionario-cpf" maxlength="11" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="input-group">
+                            <label for="funcionario-email">Email (Login)</label>
+                            <input type="email" id="funcionario-email" required>
+                        </div>
+                        <div class="input-group">
+                            <label for="funcionario-data-nasc">Data Nascimento</label>
+                            <input type="date" id="funcionario-data-nasc">
+                        </div>
+                    </div>
+                    
+                    <div class="form-section-title">Dados Profissionais</div>
+                    <div class="form-row">
+                        <div class="input-group">
+                            <label for="funcionario-cargo">Cargo</label>
+                            <input type="text" id="funcionario-cargo" required>
+                        </div>
+                        <div class="input-group">
+                            <label for="funcionario-dataAdmissao">Data Admissão</label>
+                            <input type="date" id="funcionario-dataAdmissao" required>
+                        </div>
+                    </div>
+                    <div class="input-group full-width">
+                        <label for="funcionario-salario">Salário (R$)</label>
+                        <input type="number" id="funcionario-salario" step="0.01" min="0" required>
+                    </div>
+
+                    <div class="form-section-title">Contato</div>
+                    <div class="form-row">
+                        <div class="input-group">
+                            <label for="funcionario-telefone1">Telefone 1</label>
+                            <input type="text" id="funcionario-telefone1">
+                        </div>
+                        <div class="input-group">
+                            <label for="funcionario-telefone2">Telefone 2</label>
+                            <input type="text" id="funcionario-telefone2">
+                        </div>
+                    </div>
+                    
+                    <div class="form-section-title">Endereço</div>
+                     <div class="form-row">
+                        <div class="input-group">
+                            <label for="funcionario-cep">CEP</label>
+                            <input type="text" id="funcionario-cep" maxlength="8">
+                        </div>
+                        <div class="input-group">
+                            <label for="funcionario-uf">UF</label>
+                            <input type="text" id="funcionario-uf" maxlength="2">
+                        </div>
+                    </div>
+                    <div class="input-group full-width">
+                        <label for="funcionario-endereco">Endereço (Rua, Nro)</label>
+                        <input type="text" id="funcionario-endereco">
+                    </div>
+                    <div class="form-row">
+                        <div class="input-group">
+                            <label for="funcionario-municipio">Município</label>
+                            <input type="text" id="funcionario-municipio">
+                        </div>
+                        <div class="input-group">
+                            <label for="funcionario-complemento">Complemento</label>
+                            <input type="text" id="funcionario-complemento">
+                        </div>
+                    </div>
+                    
+                    <p id="funcionario-form-error" class="hidden" style="color: var(--danger-color); font-weight: bold; margin-bottom: 10px;"></p>
+                    <div class="form-actions">
+                        <button type="submit" class="btn primary">Salvar</button>
+                        <button type="button" class="btn secondary" onclick="hideForm('funcionarios-view')">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     <script src="script.js"></script> 
+    <script src="script1.js"></script> 
 </body>
 </html>
