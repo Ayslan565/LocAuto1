@@ -4,6 +4,8 @@ import com.locadora.LocAuto.Model.Carro;
 import com.locadora.LocAuto.Model.Contrato;
 import com.locadora.LocAuto.Model.Funcionario; 
 import com.locadora.LocAuto.Model.Usuario; 
+import com.locadora.LocAuto.Model.Cliente; // 1. IMPORTAR CLIENTE
+import com.locadora.LocAuto.Model.Pessoa;  // 1. IMPORTAR PESSOA
 import com.locadora.LocAuto.dto.ContratoFormDTO; 
 import com.locadora.LocAuto.dto.ContratoRespostaDTO;
 import com.locadora.LocAuto.dto.ContratoDetalheDTO;
@@ -11,6 +13,8 @@ import com.locadora.LocAuto.repositorio.RepositorioCarro;
 import com.locadora.LocAuto.repositorio.RepositorioContrato;
 import com.locadora.LocAuto.repositorio.repositorioFuncionario; 
 import com.locadora.LocAuto.repositorio.repositorioUsuario; 
+import com.locadora.LocAuto.repositorio.repositorioCliente; // 1. IMPORTAR REPOSITORIO CLIENTE
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication; 
@@ -43,6 +47,10 @@ public class ContratoService {
     @Autowired
     private repositorioFuncionario repositorioFuncionario; 
 
+    // 2. INJETAR REPOSITORIO CLIENTE
+    @Autowired
+    private repositorioCliente repositorioCliente;
+
     private BigDecimal calcularValorTotal(Date dataInicio, Date dataFim) {
         if (dataInicio != null && dataFim != null) {
             long diff = dataFim.getTime() - dataInicio.getTime();
@@ -63,21 +71,31 @@ public class ContratoService {
         Funcionario funcionario = repositorioFuncionario.findByPessoa(usuarioFuncionario.getPessoa())
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "O usuário logado não é um funcionário válido."));
 
-        Usuario cliente = repositorioUsuario.findById(dto.getIdClienteUsuario())
+        // --- CORREÇÃO AQUI ---
+        // 3.1 Busca o CLIENTE pelo ID que veio do formulário (ID de tb_cliente)
+        Cliente clienteEntidade = repositorioCliente.findById(dto.getIdClienteUsuario())
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cliente selecionado não encontrado."));
+
+        // 3.2 Pega a PESSOA desse cliente
+        Pessoa pessoaCliente = clienteEntidade.getPessoa();
+
+        // 3.3 Acha o USUÁRIO vinculado a essa Pessoa (para salvar na FK do contrato)
+        Usuario usuarioDoCliente = repositorioUsuario.findByPessoa(pessoaCliente)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário de login associado ao cliente não encontrado."));
+        // ---------------------
 
         Carro carro = repositorioCarro.findById(dto.getIdCarro())
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Carro selecionado não encontrado."));
         
         if (carro.getStatus() == null || !carro.getStatus()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "O carro selecionado não está disponível.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "O carro selecionado não está disponível para locação.");
         }
 
         Contrato contrato = new Contrato();
         contrato.setDataInicio(dto.getDataInicio() != null ? dto.getDataInicio() : new Date());
         contrato.setDataFim(dto.getDataFim());
         contrato.setFuncionario(funcionario); 
-        contrato.setUsuarioCliente(cliente);
+        contrato.setUsuarioCliente(usuarioDoCliente); // Usa o usuário correto encontrado
         contrato.setCarro(carro);
         contrato.setValorTotal(calcularValorTotal(contrato.getDataInicio(), contrato.getDataFim()));
         contrato.setStatusContrato("ATIVO");
@@ -94,7 +112,6 @@ public class ContratoService {
         return repositorioContrato.findById(id);
     }
 
-    // === MÉTODO ATUALIZADO PARA FILTRAR POR ID DO CLIENTE ===
     @Transactional(readOnly = true) 
     public List<ContratoDetalheDTO> listarTodos() { 
         
@@ -102,18 +119,15 @@ public class ContratoService {
         String loginUsuario = authentication.getName(); 
         
         Usuario usuarioAutenticado = repositorioUsuario.findByLogin(loginUsuario)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário autenticado não encontrado."));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário autenticado não encontrado no BD."));
         
         String role = usuarioAutenticado.getGrupoUsuario().getNomeGrupo(); 
         List<Contrato> contratos;
 
-        // Se for Gerente ou Funcionário, vê tudo
         if ("GERENTE".equals(role) || "FUNCIONARIO".equals(role)) {
             contratos = repositorioContrato.findAllCompletos();
         } 
-        // Se for Cliente, vê apenas os SEUS contratos (usando ID)
         else if ("CLIENTE".equals(role)) {
-            // Chama o novo método do repositório
             contratos = repositorioContrato.findByUsuarioClienteId(usuarioAutenticado.getId());
         }
         else {
@@ -122,12 +136,13 @@ public class ContratoService {
         
         return contratos.stream()
             .map(contrato -> {
-                String clienteNome = "Cliente Inválido";
+                
+                String clienteNome = "Cliente Inválido/Excluído";
                 if (contrato.getUsuarioCliente() != null && contrato.getUsuarioCliente().getPessoa() != null) {
                     clienteNome = contrato.getUsuarioCliente().getPessoa().getNome();
                 }
 
-                String carroNome = "Carro Inválido";
+                String carroNome = "Carro Inválido/Excluído";
                 if (contrato.getCarro() != null) {
                     carroNome = contrato.getCarro().getNome();
                 }
@@ -138,7 +153,7 @@ public class ContratoService {
                     contrato.getDataFim(),
                     contrato.getValorTotal(),
                     contrato.getStatusContrato(),
-                    clienteNome,
+                    clienteNome, 
                     carroNome
                 );
             })
@@ -158,13 +173,15 @@ public class ContratoService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Contrato não encontrado."));
 
         Carro carro = contrato.getCarro();
-        if (carro != null) {
+        if (carro == null) {
+             contrato.setStatusContrato("CONCLUIDO");
+             repositorioContrato.save(contrato);
+        } else {
+            contrato.setStatusContrato("CONCLUIDO");
             carro.setStatus(true); 
+            repositorioContrato.save(contrato);
             repositorioCarro.save(carro);
         }
-        
-        contrato.setStatusContrato("CONCLUIDO");
-        repositorioContrato.save(contrato);
 
         return new ContratoDetalheDTO(
                 contrato.getIdContrato(),
@@ -173,8 +190,9 @@ public class ContratoService {
                 contrato.getValorTotal(),
                 contrato.getStatusContrato(),
                 (contrato.getUsuarioCliente() != null && contrato.getUsuarioCliente().getPessoa() != null) 
-                    ? contrato.getUsuarioCliente().getPessoa().getNome() : "Excluído",
-                (contrato.getCarro() != null) ? contrato.getCarro().getNome() : "Excluído"
+                    ? contrato.getUsuarioCliente().getPessoa().getNome() : "Cliente Excluído",
+                (contrato.getCarro() != null) ? contrato.getCarro().getNome() : "Carro Excluído"
         );
     }
 }
+

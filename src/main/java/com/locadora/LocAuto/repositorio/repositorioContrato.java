@@ -1,14 +1,13 @@
 package com.locadora.LocAuto.repositorio;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 import com.locadora.LocAuto.Model.Contrato;
 import com.locadora.LocAuto.Model.Usuario; 
 import com.locadora.LocAuto.Model.Carro; 
 import com.locadora.LocAuto.Model.Funcionario; 
-import org.springframework.stereotype.Repository;
-
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 @Repository
@@ -16,15 +15,15 @@ public interface RepositorioContrato extends JpaRepository<Contrato, Integer> {
     
     long countByStatusContrato(String status);
 
-    // Busca para Gerentes/Funcionários (Traz tudo)
+    // Busca para GERENTE e FUNCIONARIO (Traz tudo com os nomes preenchidos)
     @Query("SELECT c FROM Contrato c " +
            "LEFT JOIN FETCH c.usuarioCliente uc " +
            "LEFT JOIN FETCH uc.pessoa " +
            "LEFT JOIN FETCH c.carro c2_0")
     List<Contrato> findAllCompletos();
 
-    // --- NOVO MÉTODO DE BUSCA POR ID (Para o Cliente) ---
-    // Garante que traga apenas os contratos onde o ID do usuário cliente bate com o logado
+    // --- BUSCA PARA O CLIENTE ---
+    // Traz apenas os contratos onde o ID do usuário (tb_usuarios.id_usuario) é igual ao passado
     @Query("SELECT c FROM Contrato c " +
            "LEFT JOIN FETCH c.usuarioCliente uc " +
            "LEFT JOIN FETCH uc.pessoa " +
@@ -33,6 +32,5 @@ public interface RepositorioContrato extends JpaRepository<Contrato, Integer> {
     List<Contrato> findByUsuarioClienteId(@Param("id") Integer id);
     
     long countByCarro(Carro carro);
-
     long countByFuncionario(Funcionario funcionario);
 }
