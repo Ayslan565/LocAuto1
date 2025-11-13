@@ -2,15 +2,7 @@ package com.locadora.LocAuto.Controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.locadora.LocAuto.Model.Carro;
@@ -24,34 +16,25 @@ public class ControleCarro {
     @Autowired
     public CarroServices carroService;
 
+    // --- CADASTRAR ---
     @PostMapping("/add")
     public Carro adicionarInfCarro(@RequestBody Carro carro) {
         return carroService.salvar(carro);
     }
     
+    // --- ATUALIZAR (LOG: CarroServices.atualizar) ---
     @PutMapping("/{id}")
     public ResponseEntity<Carro> atualizarCarro(@PathVariable Integer id, @RequestBody Carro carroDoFormulario) {
-        
-        Optional<Carro> carroOpt = carroService.buscarPorId(id);
-        
-        if (carroOpt.isEmpty()) {
-            return ResponseEntity.notFound().build();
+        try {
+            // Chama o método específico 'atualizar' para garantir o log correto e as validações
+            Carro carroAtualizado = carroService.atualizar(id, carroDoFormulario);
+            return ResponseEntity.ok(carroAtualizado);
+        } catch (ResponseStatusException e) {
+            return ResponseEntity.status(e.getStatusCode()).build();
         }
-
-        Carro carroDoBanco = carroOpt.get();
-
-        // Atualiza apenas os campos permitidos, mantendo o ID, Status e Ativo originais
-        carroDoBanco.setNome(carroDoFormulario.getNome());
-        carroDoBanco.setPlaca(carroDoFormulario.getPlaca());
-        carroDoBanco.setAnoFabricacao(carroDoFormulario.getAnoFabricacao());
-        carroDoBanco.setCor(carroDoFormulario.getCor());
-        carroDoBanco.setQuilometragem(carroDoFormulario.getQuilometragem());
-        
-        Carro carroAtualizado = carroService.salvar(carroDoBanco);
-        return ResponseEntity.ok(carroAtualizado);
     }
 
-    // --- ATUALIZADO: Aceita 'placa' e 'nome' para a busca ---
+    // --- LISTAR (Suporta filtro por PLACA ou NOME) ---
     @GetMapping("/listar")
     public Iterable<Carro> listarCarros(
         @RequestParam(value = "placa", required = false) String placa,
@@ -61,6 +44,7 @@ public class ControleCarro {
         return carroService.listarTodos(placa, nome);
     }
 
+    // --- BUSCAR POR ID ---
     @GetMapping("/{id}")
     public ResponseEntity<Carro> buscarCarroPorId(@PathVariable Integer id) {
         return carroService.buscarPorId(id)
@@ -68,6 +52,7 @@ public class ControleCarro {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    // --- DELETAR ---
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletarCarro(@PathVariable Integer id) {
         try {
@@ -75,7 +60,6 @@ public class ControleCarro {
             return ResponseEntity.noContent().build(); 
             
         } catch (ResponseStatusException e) {
-            // Retorna o status correto (400 ou 404) definido no Service
             return ResponseEntity.status(e.getStatusCode()).body(null);
         }
     }

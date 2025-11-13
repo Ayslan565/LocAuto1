@@ -9,16 +9,19 @@ import org.springframework.dao.DataIntegrityViolationException;
 
 import com.locadora.LocAuto.Model.Cliente;
 import com.locadora.LocAuto.Model.Pessoa;
-import com.locadora.LocAuto.Model.Usuario; // Importante para pegar o email correto
+import com.locadora.LocAuto.Model.Usuario; 
 import com.locadora.LocAuto.dto.ClienteCadastroDTO; 
 import com.locadora.LocAuto.repositorio.repositorioCliente; 
-import com.locadora.LocAuto.repositorio.repositorioUsuario; // Importante para buscar o login
+import com.locadora.LocAuto.repositorio.repositorioUsuario;
+import com.locadora.LocAuto.repositorio.repositorioPessoa; // Necessário para deletar
+import com.locadora.LocAuto.repositorio.RepositorioContrato; // Necessário para verificar contratos antes de deletar
 
 import java.time.LocalDate;
 import java.time.Period;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.Optional; 
+import java.util.List;
 
 @Service
 public class ClienteService {
@@ -33,7 +36,14 @@ public class ClienteService {
     private UsuarioService usuarioService;
 
     @Autowired
-    private repositorioUsuario repositorioUsuario; // Injeção necessária para corrigir o email
+    private repositorioUsuario repositorioUsuario; 
+
+    // Injeções adicionais para a funcionalidade de exclusão
+    @Autowired
+    private repositorioPessoa repositorioPessoa;
+
+    @Autowired
+    private RepositorioContrato repositorioContrato;
 
     /**
      * Valida se a pessoa atingiu a maioridade (18 anos).
@@ -117,14 +127,13 @@ public class ClienteService {
 
     /**
      * Lista todos os clientes.
-     * (Revertido para não filtrar por CPF, mas mantém a correção do email de login)
+     * Corrige o email visualizado trocando pelo login da tabela de usuários.
      */
     public Iterable<Cliente> listarClientes() {
         // 1. Busca todos os clientes
         Iterable<Cliente> clientes = repositorioCliente.findAll();
 
         // 2. Itera sobre a lista para substituir o email da Pessoa pelo Login do Usuário
-        // (Isso garante que na tabela apareça o email de login correto da tb_usuarios)
         for (Cliente cliente : clientes) {
             Pessoa pessoa = cliente.getPessoa();
             if (pessoa != null) {
@@ -140,9 +149,47 @@ public class ClienteService {
     }
     
     /**
-     * Busca um Cliente pelo ID usando o repositório.
+     * Busca um Cliente pelo ID.
      */
     public Optional<Cliente> buscarPorId(Integer id) {
         return repositorioCliente.findById(id);
+    }
+
+    /**
+     * Deleta um Cliente, seu Usuário de acesso e seus dados de Pessoa.
+     * Impede a exclusão se houver contratos vinculados.
+     */
+    @Transactional
+    public void deletar(Integer id) {
+        // 1. Busca o Cliente
+        Cliente cliente = repositorioCliente.findById(id)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cliente não encontrado."));
+
+        Pessoa pessoa = cliente.getPessoa();
+        Optional<Usuario> usuarioOpt = repositorioUsuario.findByPessoa(pessoa);
+
+        // 2. Verifica se o usuário tem contratos
+        if (usuarioOpt.isPresent()) {
+            List<?> contratos = repositorioContrato.findByUsuarioClienteId(usuarioOpt.get().getId());
+            if (!contratos.isEmpty()) {
+                throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST, 
+                    "Este cliente possui contratos registrados e não pode ser excluído."
+                );
+            }
+        }
+
+        // 3. Remove na ordem correta (Filhos -> Pai) para evitar erro de FK
+        
+        // Remove o registro da tabela tb_cliente
+        repositorioCliente.delete(cliente);
+        
+        // Remove o login (tb_usuarios)
+        if (usuarioOpt.isPresent()) {
+            repositorioUsuario.delete(usuarioOpt.get());
+        }
+
+        // Remove os dados pessoais (tb_pessoa)
+        repositorioPessoa.delete(pessoa);
     }
 }
