@@ -1,0 +1,279 @@
+-- =================================================================
+-- DOCUMENTAÇÃO TÉCNICA - BANCO DE DADOS LOCAUTO
+-- SGBD: MySQL
+-- Data de Geração: 13/11/2025
+-- =================================================================
+
+-- 1. CRIAÇÃO DO SCHEMA E TABELAS
+-- =================================================================
+CREATE SCHEMA IF NOT EXISTS LocAuto DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+USE LocAuto;
+
+-- Tabela Pessoa (Superclasse)
+CREATE TABLE IF NOT EXISTS tb_pessoa (
+    id_pessoa INT PRIMARY KEY AUTO_INCREMENT,
+    cpf VARCHAR(14) NOT NULL UNIQUE,
+    nome VARCHAR(255) NOT NULL,
+    data_nasc DATE,
+    cep VARCHAR(10),
+    municipio VARCHAR(255),
+    uf VARCHAR(2),
+    complemento VARCHAR(255),
+    email VARCHAR(255),
+    telefone1 VARCHAR(20),
+    telefone2 VARCHAR(20),
+    endereco VARCHAR(255)
+) ENGINE = InnoDB;
+
+-- Tabela Carro (Frota)
+CREATE TABLE IF NOT EXISTS tb_carro (
+    id_carro INT PRIMARY KEY AUTO_INCREMENT,
+    placa VARCHAR(10) NOT NULL UNIQUE,
+    modelo VARCHAR(100), -- Mapeado como 'nome' no Java, ajustado aqui para compatibilidade ou usar 'nome'
+    nome VARCHAR(255),   -- Campo usado no Java
+    ano_fabricacao INT,
+    cor VARCHAR(50),
+    quilometragem DOUBLE,
+    status BOOLEAN DEFAULT TRUE, -- TRUE = Disponível, FALSE = Alugado
+    ativo BOOLEAN DEFAULT TRUE   -- TRUE = Visível, FALSE = Excluído (Exclusão Lógica)
+) ENGINE = InnoDB;
+
+-- Tabela Grupos de Usuários (Perfis de Acesso)
+CREATE TABLE IF NOT EXISTS tb_grupos_usuarios (
+    id_grupo INT PRIMARY KEY AUTO_INCREMENT,
+    nome_grupo VARCHAR(50) NOT NULL UNIQUE, -- Ex: CLIENTE, FUNCIONARIO, GERENTE
+    descricao TEXT
+) ENGINE = InnoDB;
+
+-- Tabela Usuários (Autenticação)
+CREATE TABLE IF NOT EXISTS tb_usuarios (
+    id_usuario INT PRIMARY KEY AUTO_INCREMENT,
+    login VARCHAR(255) NOT NULL UNIQUE,
+    senha VARCHAR(255) NOT NULL, -- Hash BCrypt
+    fk_id_pessoa INT NOT NULL,
+    fk_id_grupo INT NOT NULL,
+    
+    CONSTRAINT fk_usuario_pessoa FOREIGN KEY (fk_id_pessoa) REFERENCES tb_pessoa(id_pessoa),
+    CONSTRAINT fk_usuario_grupo FOREIGN KEY (fk_id_grupo) REFERENCES tb_grupos_usuarios(id_grupo)
+) ENGINE = InnoDB;
+
+-- Tabela Cliente (Especialização)
+CREATE TABLE IF NOT EXISTS tb_cliente (
+    id_cliente INT PRIMARY KEY AUTO_INCREMENT,
+    fk_id_pessoa INT NOT NULL,
+    
+    CONSTRAINT fk_cliente_pessoa FOREIGN KEY (fk_id_pessoa) 
+    REFERENCES tb_pessoa(id_pessoa) ON DELETE CASCADE
+) ENGINE = InnoDB;
+
+-- Tabela Funcionário (Especialização)
+CREATE TABLE IF NOT EXISTS tb_funcionario (
+    id_funcionarios INT PRIMARY KEY AUTO_INCREMENT,
+    data_admissao DATE NOT NULL,
+    cargo VARCHAR(255) NOT NULL,
+    salario DOUBLE NOT NULL,
+    fk_id_pessoa INT NOT NULL,
+    
+    CONSTRAINT fk_funcionario_pessoa FOREIGN KEY (fk_id_pessoa) 
+    REFERENCES tb_pessoa(id_pessoa) ON DELETE CASCADE
+) ENGINE = InnoDB;
+
+-- Tabela Contrato (Transacional)
+CREATE TABLE IF NOT EXISTS tb_contrato (
+    id_contrato INT PRIMARY KEY AUTO_INCREMENT,
+    data_inicio DATE NOT NULL,
+    data_fim DATE NOT NULL,
+    valor_total DECIMAL(10, 2),
+    status_contrato VARCHAR(20) NOT NULL DEFAULT 'ATIVO', -- ATIVO, CONCLUIDO, ATRASADO
+    
+    fk_id_usuario_cliente INT NOT NULL,
+    fk_id_carro INT NOT NULL,
+    fk_id_funcionario INT, -- Opcional, quem abriu o contrato
+    
+    CONSTRAINT fk_contrato_usuario FOREIGN KEY (fk_id_usuario_cliente) REFERENCES tb_usuarios(id_usuario),
+    CONSTRAINT fk_contrato_carro FOREIGN KEY (fk_id_carro) REFERENCES tb_carro(id_carro),
+    CONSTRAINT fk_contrato_func FOREIGN KEY (fk_id_funcionario) REFERENCES tb_funcionario(id_funcionarios)
+) ENGINE = InnoDB;
+
+-- =================================================================
+-- 2. ÍNDICES (Performance)
+-- =================================================================
+CREATE INDEX idx_pessoa_cpf ON tb_pessoa(cpf);
+CREATE INDEX idx_carro_placa ON tb_carro(placa);
+CREATE INDEX idx_usuario_login ON tb_usuarios(login);
+
+-- =================================================================
+-- 3. TRIGGERS (Regras de Negócio no Banco)
+-- =================================================================
+DELIMITER $$
+
+-- Trigger 1: Atualiza status do carro ao abrir contrato
+CREATE TRIGGER trg_carro_alugado_status
+AFTER INSERT ON tb_contrato
+FOR EACH ROW
+BEGIN
+    UPDATE tb_carro
+    SET status = FALSE -- Define como Indisponível
+    WHERE id_carro = NEW.fk_id_carro;
+END$$
+
+-- Trigger 2: Validação de Idade e Data (Requisito de Trabalho Acadêmico)
+CREATE TRIGGER trg_validar_data_nasc
+BEFORE INSERT ON tb_pessoa
+FOR EACH ROW
+BEGIN
+    DECLARE idade INT;
+    
+    IF NEW.data_nasc IS NOT NULL THEN
+        SET idade = TIMESTAMPDIFF(YEAR, NEW.data_nasc, CURDATE());
+        
+        IF NEW.data_nasc > CURDATE() THEN
+            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Erro: Data de nascimento no futuro.';
+        ELSEIF idade < 18 THEN
+            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Erro: Proibido cadastro de menores de 18 anos.';
+        ELSEIF idade >= 80 THEN
+            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Erro: Cadastro restrito para maiores de 80 anos.';
+        END IF;
+    END IF;
+END$$
+
+DELIMITER ;
+
+-- =================================================================
+-- 4. VIEWS (Relatórios e Segurança)
+-- =================================================================
+
+/* View para o Dashboard do Gerente */
+CREATE OR REPLACE VIEW VW_Gerente AS
+SELECT 
+    CT.id_contrato, CT.data_inicio, CT.data_fim, CT.valor_total, CT.status_contrato,
+    P.nome AS cliente_nome, P.cpf AS cliente_cpf,
+    C.nome AS carro_modelo, C.placa,
+    F_P.nome AS funcionario_resp
+FROM tb_contrato CT
+JOIN tb_usuarios U ON CT.fk_id_usuario_cliente = U.id_usuario
+JOIN tb_pessoa P ON U.fk_id_pessoa = P.id_pessoa
+JOIN tb_carro C ON CT.fk_id_carro = C.id_carro
+LEFT JOIN tb_funcionario F ON CT.fk_id_funcionario = F.id_funcionarios
+LEFT JOIN tb_pessoa F_P ON F.fk_id_pessoa = F_P.id_pessoa;
+
+/* View Pública de Carros Disponíveis */
+CREATE OR REPLACE VIEW VW_Carros_Disponiveis AS
+SELECT nome, placa, ano_fabricacao, cor, quilometragem 
+FROM tb_carro 
+WHERE status = TRUE AND ativo = TRUE;
+
+-- =================================================================
+-- 5. PROCEDURES E FUNCTIONS
+-- =================================================================
+DELIMITER $$
+
+/* Function: Verifica se um carro está disponível */
+CREATE FUNCTION fn_VerificarDisponibilidadeCarro(p_id_carro INT)
+RETURNS BOOLEAN
+DETERMINISTIC READS SQL DATA
+BEGIN
+    DECLARE v_status BOOLEAN;
+    SELECT status INTO v_status FROM tb_carro WHERE id_carro = p_id_carro;
+    RETURN IFNULL(v_status, FALSE);
+END$$
+
+/* Procedure: Cadastro simplificado de cliente */
+CREATE PROCEDURE sp_CadastrarNovoCliente(
+    IN p_cpf VARCHAR(14), IN p_nome VARCHAR(255), 
+    IN p_email VARCHAR(255), IN p_senha VARCHAR(255), 
+    IN p_nasc DATE
+)
+BEGIN
+    DECLARE v_id_pessoa INT;
+    DECLARE v_grupo INT;
+    
+    -- Busca ID do grupo CLIENTE
+    SELECT id_grupo INTO v_grupo FROM tb_grupos_usuarios WHERE nome_grupo = 'CLIENTE';
+    
+    -- Insere Pessoa
+    INSERT INTO tb_pessoa(cpf, nome, email, data_nasc) VALUES (p_cpf, p_nome, p_email, p_nasc);
+    SET v_id_pessoa = LAST_INSERT_ID();
+    
+    -- Insere Usuário
+    INSERT INTO tb_usuarios(login, senha, fk_id_pessoa, fk_id_grupo) 
+    VALUES (p_email, p_senha, v_id_pessoa, v_grupo);
+    
+    -- Insere Cliente
+    INSERT INTO tb_cliente(fk_id_pessoa) VALUES (v_id_pessoa);
+END$$
+
+DELIMITER ;
+
+-- =================================================================
+-- 6. CARGA DE DADOS (Seed Inicial)
+-- =================================================================
+
+-- Grupos
+INSERT INTO tb_grupos_usuarios (nome_grupo, descricao) VALUES
+('CLIENTE', 'Acesso limitado a proprios contratos'),
+('FUNCIONARIO', 'Gestao operacional'),
+('GERENTE', 'Acesso total administrativo');
+
+-- Pessoas
+INSERT INTO tb_pessoa (cpf, nome, data_nasc, email, telefone1) VALUES 
+('111.222.333-44', 'Ana Silva', '1990-05-15', 'ana@email.com', '11999990000'), -- Cliente
+('555.666.777-88', 'Bruno Gerente', '1985-10-20', 'admin@locauto.com', '11988887777'), -- Gerente
+('999.888.777-66', 'Carla Func', '1995-01-30', 'carla@locauto.com', '11977776666'); -- Funcionario
+
+-- Usuários (Senha 1234 criptografada: $2a$10$...)
+-- Nota: Para testar no sistema real, cadastre via tela para gerar o hash correto
+INSERT INTO tb_usuarios (login, senha, fk_id_pessoa, fk_id_grupo) VALUES
+('ana@email.com', '$2a$10$ExemploHashPara1234...', 1, 1),
+('admin@locauto.com', '$2a$10$ExemploHashPara1234...', 2, 3),
+('carla@locauto.com', '$2a$10$ExemploHashPara1234...', 3, 2);
+
+-- Vínculos de Papéis
+INSERT INTO tb_cliente (fk_id_pessoa) VALUES (1);
+INSERT INTO tb_funcionario (data_admissao, cargo, salario, fk_id_pessoa) VALUES 
+('2020-01-01', 'Gerente Geral', 8000.00, 2),
+('2023-05-10', 'Atendente', 2500.00, 3);
+
+-- Carros
+INSERT INTO tb_carro (placa, nome, ano_fabricacao, cor, quilometragem, status, ativo) VALUES 
+('ABC1D23', 'Onix Plus', 2022, 'Prata', 45000, TRUE, TRUE),
+('XYZ9E87', 'Jeep Renegade', 2021, 'Preto', 60000, TRUE, TRUE),
+('FER1234', 'Ferrari Spider', 2024, 'Vermelho', 5000, TRUE, TRUE);
+
+-- Contratos
+INSERT INTO tb_contrato (data_inicio, data_fim, valor_total, status_contrato, fk_id_usuario_cliente, fk_id_carro) VALUES 
+('2025-11-10', '2025-11-15', 750.00, 'CONCLUIDO', 1, 1), -- Concluído
+('2025-11-20', '2025-11-25', 750.00, 'ATIVO', 1, 2);     -- Ativo
+
+-- =================================================================
+-- 7. SEGURANÇA (DCL)
+-- =================================================================
+DROP USER IF EXISTS 'user_cliente'@'localhost';
+DROP USER IF EXISTS 'user_funcionario'@'localhost';
+DROP USER IF EXISTS 'user_gerente'@'localhost';
+DROP USER IF EXISTS 'administrador_TI'@'localhost';
+
+-- Criação dos usuários do SGBD
+CREATE USER 'administrador_TI'@'localhost' IDENTIFIED BY '1234'; -- Usado pelo Spring Boot
+CREATE USER 'user_cliente'@'localhost' IDENTIFIED BY '1234';
+CREATE USER 'user_funcionario'@'localhost' IDENTIFIED BY '1234';
+CREATE USER 'user_gerente'@'localhost' IDENTIFIED BY '1234';
+
+-- Permissões do Sistema (Spring Boot)
+GRANT ALL PRIVILEGES ON LocAuto.* TO 'administrador_TI'@'localhost';
+
+-- Permissões Específicas (Conceitual - se a aplicação usasse conexões distintas)
+GRANT SELECT ON LocAuto.VW_Carros_Disponiveis TO 'user_cliente'@'localhost';
+GRANT SELECT, INSERT, UPDATE ON LocAuto.tb_contrato TO 'user_funcionario'@'localhost';
+GRANT ALL PRIVILEGES ON LocAuto.* TO 'user_gerente'@'localhost';
+
+FLUSH PRIVILEGES;
+Observações Importantes para sua Documentação:
+
+Fontes: O script consolidado acima foi gerado combinando os arquivos: Cria_tabelas.sql, indices.sql, Triggers.sql, VIEWs.sql, procedures e functions.sql, Insert_dados.sql e TABELAS_OBRIGATORIAS.sql.
+
+Ajuste de Tabelas: Adicionei a criação da tb_cliente e tb_contrato com a estrutura compatível com o seu código Java (campo status_contrato e ativo na tb_carro foram adicionados na estrutura correta).
+
+Auto Increment: Adicionei AUTO_INCREMENT nas chaves primárias para refletir o comportamento esperado no MySQL e no seu código Java (@GeneratedValue(strategy = GenerationType.IDENTITY)).
+
+Ordem: A ordem de criação foi mantida para respeitar as restrições de chave estrangeira (Foreign Keys).

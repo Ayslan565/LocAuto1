@@ -48,34 +48,67 @@
 
             <section id="home-view" class="view active">
                 <h3>Resumo Geral</h3>
-                <div class="kpi-cards">
+                
+                <!-- KPI Cards (Agora com 5 cards e flex-wrap) -->
+                <div class="kpi-cards" style="flex-wrap: wrap;">
+                    
+                    <!-- Card 1: Carros Disponíveis -->
                     <div class="card kpi">
                         <i class="fas fa-car primary-color"></i>
                         <p>Carros Disponíveis</p>
                         <span id="kpi-carros-disponiveis">...</span>
                     </div>
+                    
+                    <!-- Card 2: Carros Alugados -->
                     <div class="card kpi">
                         <i class="fas fa-car-side secondary-color"></i>
                         <p>Carros Alugados</p>
                         <span id="kpi-carros-alugados">...</span>
                     </div>
+
+                    <!-- Card 3: Contratos ATIVOS (Separado) -->
                     <div class="card kpi">
-                        <i class="fas fa-file-signature" style="color: #ffc107;"></i>
+                        <i class="fas fa-file-contract" style="color: #007bff;"></i> <!-- Ícone Azul -->
                         <p>Contratos Ativos</p>
                         <span id="kpi-contratos-ativos">...</span>
                     </div>
+
+                    <!-- Card 4: Contratos CONCLUÍDOS (Separado) -->
+                    <div class="card kpi">
+                        <i class="fas fa-file-signature" style="color: #28a745;"></i> <!-- Ícone Verde -->
+                        <p>Contratos Concluídos</p>
+                        <span id="kpi-contratos-concluidos">...</span> <!-- ID NOVO -->
+                    </div>
+
+                    <!-- Card 5: Clientes (Oculto para perfil Cliente) -->
                     <div class="card kpi" id="kpi-clientes-card">
                         <i class="fas fa-users success-color"></i>
                         <p>Clientes Cadastrados</p>
                         <span id="kpi-clientes">...</span>
                     </div>
                 </div>
-                <h3 style="margin-top: 20px;">Gráficos</h3>
-                <div class="card">
-                    <h4>Distribuição da Frota</h4>
-                    <div style="width: 300px; height: 300px; margin: 0 auto;">
-                        <canvas id="graficoFrota"></canvas>
+
+                <h3 style="margin-top: 20px;">Análise Gráfica</h3>
+                
+                <!-- Container Flex para os Gráficos -->
+                <div style="display: flex; flex-wrap: wrap; gap: 20px;">
+                    
+                    <!-- Gráfico 1: Frota -->
+                    <div class="card" style="flex: 1; min-width: 300px;">
+                        <h4>Distribuição da Frota</h4>
+                        <div style="height: 250px; position: relative;">
+                            <canvas id="graficoFrota"></canvas>
+                        </div>
                     </div>
+
+                    <!-- Gráfico 2: Contratos -->
+                    <div class="card" style="flex: 1; min-width: 300px;">
+                        <h4>Status dos Contratos</h4>
+                        <div style="height: 250px; position: relative;">
+                            <canvas id="graficoContratos"></canvas>
+                        </div>
+                    </div>
+
                 </div>
             </section>
             
@@ -115,6 +148,7 @@
             </section>
         </main>
         
+        <!-- MODAIS (Formulários) -->
         
         <div id="clientes-form-container" class="form-overlay hidden">
             <div class="form-modal">
@@ -361,6 +395,7 @@
                 </form>
             </div>
         </div>
+        
     <!-- Scripts Modularizados -->
     <script src="utils.js"></script>
     <script src="dashboard.js"></script>

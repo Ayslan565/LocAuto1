@@ -1,5 +1,5 @@
 // =================================================================
-// TABLES.JS - Funções de Renderização de Tabelas
+// TABLES.JS - Funções de Renderização de Tabelas (Atualizado com Busca Inteligente)
 // =================================================================
 
 /**
@@ -50,6 +50,7 @@ async function renderContratosView() {
 
 /**
  * Renderiza views genéricas (Clientes, Funcionários, Carros)
+ * Com lógica de Busca Inteligente (Placa vs Nome)
  */
 async function renderDataView(viewId, entityName, endpoint, filterParamName = null) {
     const view = document.getElementById(viewId);
@@ -58,9 +59,10 @@ async function renderDataView(viewId, entityName, endpoint, filterParamName = nu
     let searchBarHtml = '';
     if (filterParamName) {
         let placeholder = `Buscar por ${filterParamName}...`;
+        
+        // Customização dos placeholders
         if (filterParamName === 'cpf') placeholder = 'Buscar por CPF... (ex: 111)';
-        if (filterParamName === 'placa') placeholder = 'Buscar por Placa... (ex: ABC)';
-        if (filterParamName === 'nome') placeholder = 'Buscar por Nome/Modelo...';
+        if (entityName === 'Carro') placeholder = 'Buscar por Placa ou Modelo...'; // Texto atualizado
         
         searchBarHtml = `
             <div class="search-area">
@@ -95,14 +97,34 @@ async function renderDataView(viewId, entityName, endpoint, filterParamName = nu
     `;
 
     if (filterParamName) {
-        document.getElementById(`${viewId}-search-button`).addEventListener('click', () => {
+        // Função auxiliar para decidir qual parâmetro enviar (Placa ou Nome)
+        const executeSearch = () => {
             const searchTerm = document.getElementById(`${viewId}-search-input`).value;
-            fetchDataAndRenderTable(viewId, endpoint, filterParamName, searchTerm);
-        });
+            let actualParam = filterParamName;
+
+            // --- LÓGICA DE BUSCA INTELIGENTE PARA CARROS ---
+            if (entityName === 'Carro' && searchTerm) {
+                // Remove traços e espaços para verificar se parece uma placa
+                const cleanTerm = searchTerm.replace(/[^a-zA-Z0-9]/g, '');
+                
+                // Se tiver exatamente 7 caracteres alfanuméricos, assume que é PLACA.
+                // Caso contrário (ex: "Onix", "Fiat"), assume que é NOME.
+                if (cleanTerm.length === 7) {
+                    actualParam = 'placa';
+                } else {
+                    actualParam = 'nome';
+                }
+            }
+            // -----------------------------------------------
+
+            fetchDataAndRenderTable(viewId, endpoint, actualParam, searchTerm);
+        };
+
+        document.getElementById(`${viewId}-search-button`).addEventListener('click', executeSearch);
         
         document.getElementById(`${viewId}-search-input`).addEventListener('keyup', (event) => {
             if (event.key === 'Enter') {
-                document.getElementById(`${viewId}-search-button`).click();
+                executeSearch();
             }
         });
     }
@@ -258,61 +280,50 @@ function getTableRows(entityName, data) {
         
         } else if (entityName === 'contrato') {
              // ========================================================
-             // LÓGICA DO SEMÁFORO (CORES DE FUNDO) PARA CONTRATOS
+             // LÓGICA DO SEMÁFORO (CORES) PARA CONTRATOS
              // ========================================================
              const valor = item.valorTotal || 0;
              const valorFormatado = valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
              const dtInicio = item.dataInicio ? new Date(item.dataInicio).toLocaleDateString('pt-BR', {timeZone: 'UTC'}) : 'N/D';
              const dtFim = item.dataFim ? new Date(item.dataFim).toLocaleDateString('pt-BR', {timeZone: 'UTC'}) : 'N/D';
              
-             let rowStyle = ''; // Define a cor do FUNDO da linha (tr)
+             let rowStyle = '';
              let statusTxt = item.statusContrato || 'ATIVO';
-             let statusStyle = ''; // Define a cor do TEXTO do status
+             let statusStyle = '';
 
              // Só aplicamos a cor de alerta se o contrato ainda estiver ATIVO
              if (statusTxt === 'ATIVO' && item.dataFim) {
                  const hoje = new Date();
-                 hoje.setHours(0, 0, 0, 0); // Zera hoje para meia-noite
+                 hoje.setHours(0, 0, 0, 0);
 
                  let dataEntrega;
                  
-                 // Lógica de Data Robusta para corrigir bugs de Fuso Horário
                  if (typeof item.dataFim === 'string') {
-                     // 1. Remove a parte da hora (tudo depois do T), ficando apenas "yyyy-MM-dd"
                      const dataLimpa = item.dataFim.split('T')[0];
                      const partesData = dataLimpa.split('-');
-                     
-                     // 2. Cria a data usando o construtor local (Ano, Mês-1, Dia)
                      dataEntrega = new Date(partesData[0], partesData[1] - 1, partesData[2]);
-                 
-                 } else if (typeof item.dataFim === 'number') {
-                     // Caso venha como Timestamp
-                     dataEntrega = new Date(item.dataFim);
                  } else {
-                     // Fallback
                      dataEntrega = new Date(item.dataFim);
                  }
-                 
-                 // Garante que a data de entrega também seja meia-noite
                  dataEntrega.setHours(0, 0, 0, 0);
 
                  if (hoje.getTime() > dataEntrega.getTime()) {
-                     // Passou da data: FUNDO VERMELHO CLARO
+                     // Atrasado: Vermelho
                      rowStyle = 'style="background-color: #ffe6e6;"'; 
                      statusTxt = 'ATRASADO';
-                     statusStyle = 'style="color: #dc3545; font-weight: bold;"'; 
+                     statusStyle = 'style="color: #dc3545; font-weight: bold;"';
                  } else if (hoje.getTime() === dataEntrega.getTime()) {
-                     // É hoje: FUNDO AMARELO CLARO
+                     // Hoje: Amarelo
                      rowStyle = 'style="background-color: #fff3cd;"'; 
                      statusTxt = 'ENTREGA HOJE';
-                     statusStyle = 'style="color: #856404; font-weight: bold;"'; // Texto escuro para contraste
+                     statusStyle = 'style="color: #856404; font-weight: bold;"';
                  } else {
-                     // Futuro: FUNDO PADRÃO (Branco/Transparente)
+                     // No prazo: Verde
                      rowStyle = ''; 
-                     statusStyle = 'style="color: #28a745; font-weight: bold;"'; // Texto verde
+                     statusStyle = 'style="color: #28a745; font-weight: bold;"'; 
                  }
              } else if (statusTxt === 'CONCLUIDO') {
-                 // Se concluído: FUNDO CINZA
+                 // Concluído: Cinza
                  rowStyle = 'style="background-color: #f0f0f0;"';
                  statusStyle = 'style="color: #6c757d;"';
              }
@@ -321,7 +332,6 @@ function getTableRows(entityName, data) {
              if (currentUserRole === 'GERENTE' || currentUserRole === 'FUNCIONARIO') {
                  const isConcluido = (item.statusContrato === 'CONCLUIDO');
                  if (isConcluido) {
-                     // Garante fundo cinza se já estiver marcado
                      rowStyle = 'style="background-color: #f0f0f0;"'; 
                      actions = `<input type="checkbox" checked disabled>`;
                  } else {
@@ -331,16 +341,14 @@ function getTableRows(entityName, data) {
                  actions = `<span style="color: var(--secondary-color);"><i>Visualização</i></span>`;
              }
              
-             // Aplica statusStyle na célula correta
              if (currentUserRole === 'CLIENTE') {
                  cells = `<td>${item.idContrato}</td><td>${item.carroNome || 'N/D'}</td><td>${dtInicio}</td><td>${dtFim}</td><td>${valorFormatado}</td><td ${statusStyle}>${statusTxt}</td>`;
              } else {
                  cells = `<td>${item.idContrato}</td><td>${item.clienteNome || 'N/D'}</td><td>${item.carroNome || 'N/D'}</td><td>${dtInicio}</td><td>${dtFim}</td><td>${valorFormatado}</td><td ${statusStyle}>${statusTxt}</td>`;
              }
              
-             // Aplica rowStyle na tag <tr>
              html += `<tr ${rowStyle}>${cells}<td>${actions}</td></tr>`;
-             return; // Retorna para evitar duplicidade
+             return; 
         }
         
         html += `<tr>${cells}<td>${actions}</td></tr>`;
